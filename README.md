@@ -82,7 +82,7 @@ librerie e framework moderni.
 
 1. **Clona** il repository:
    ```bash
-   git clone https://github.com/<tuo‑user>/mbi.git
+   git clone https://github.com/MicheleLopsDev/mbi.git
    ```
 2. **Importa** in *Android Studio Giraffe* (o superiore).
 3. **Inserisci la tua chiave Pixabay**:
