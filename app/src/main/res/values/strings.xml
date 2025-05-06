@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">MBI</string>
+    <string name="precedente">prev</string>
+    <string name="primo">home</string>
+    <string name="successivo">next</string>
+    <string name="cerca">find</string>
+    <string name="immagine">image</string>
+    <string name="video">video</string>
+    <string name="audio">audio</string>
+    <string name="menu">menu</string>
+    <string name="settings">settings</string>
+    <string name="scale_type">scale type</string>
+    <string name="theme">theme</string>
+    <string name="about">about</string>
+    <string name="help">help</string>
+    <string name="center_crop">center crop</string>
+    <string name="fit_center">fit center</string>
+    <string name="center_inside">center inside</string>
+    <string name="fit_xy">fit xy</string>
+    <string name="matrix">matrix</string>
+    <string name="center">center</string>
+    <string name="fit_start">fit start</string>
+    <string name="fit_end">fit end</string>
+    <string name="light">light</string>
+    <string name="dark">dark</string>
+    <string name="exit">exit</string>
+    <string name="rew">-100</string>
+    <string name="fw">+100</string>
+    <string name="video_fullscreen">fullscreen</string>
+    <string name="full_true">video fullscreen</string>
+    <string name="full_false">normal screen</string>
+    <string name="imposta_chiave_pixabay">Imposta chiave Pixabay</string>
+</resources>

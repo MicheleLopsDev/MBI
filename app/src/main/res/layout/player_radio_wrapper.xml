@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/radio_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/copertine_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="9"
+        android:background="@color/gray"
+        app:shutter_background_color="@color/gray">
+
+        <ImageView
+            android:id="@+id/radio_imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="radio icon"
+            android:src="@drawable/pngtreevector_radio_icon_4091198"
+            tools:srcCompat="@drawable/pngtreevector_radio_icon_4091198" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/comtrolli_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/player_radio_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            app:controller_layout_id="@layout/custom_player_radio_controls"
+            app:resize_mode="fit"
+            app:shutter_background_color="@color/black"
+            app:use_controller="true" />
+    </FrameLayout>
+
+</LinearLayout>

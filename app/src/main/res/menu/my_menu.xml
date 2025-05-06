@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Voce menu: Settings con due sottomenu -->
+    <item
+        android:id="@+id/menu_item_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/settings"
+        app:showAsAction="ifRoom">
+        <menu>
+            <!-- Sottomenu: Scale Type -->
+            <item
+                android:id="@+id/menu_item_pixabay_key"
+                android:title="@string/imposta_chiave_pixabay" />
+            <item
+                android:id="@+id/menu_item_scaleType"
+                android:checkableBehavior="single"
+                android:title="@string/scale_type">
+                <menu>
+                    <item
+                        android:id="@+id/scaleType_centerCrop"
+                        android:checkable="true"
+                        android:title="@string/center_crop" />
+                    <item
+                        android:id="@+id/scaleType_fitCenter"
+                        android:checkable="true"
+                        android:title="@string/fit_center" />
+                    <item
+                        android:id="@+id/scaleType_centerInside"
+                        android:checkable="true"
+                        android:title="@string/center_inside" />
+                    <item
+                        android:id="@+id/scaleType_fitXY"
+                        android:checkable="true"
+                        android:title="@string/fit_xy" />
+                    <item
+                        android:id="@+id/scaleType_center"
+                        android:checkable="true"
+                        android:title="@string/center" />
+                    <item
+                        android:id="@+id/scaleType_fitStart"
+                        android:checkable="true"
+                        android:title="@string/fit_start" />
+                    <item
+                        android:id="@+id/scaleType_fitEnd"
+                        android:checkable="true"
+                        android:title="@string/fit_end" />
+                </menu>
+            </item>
+            <!-- Sottomenu: Theme  -->
+            <item
+                android:id="@+id/menu_item_theme"
+                android:checkableBehavior="single"
+                android:title="@string/theme">
+                <menu>
+                    <item
+                        android:id="@+id/theme_light"
+                        android:checkable="true"
+                        android:title="@string/light" />
+                    <item
+                        android:id="@+id/theme_dark"
+                        android:checkable="true"
+                        android:title="@string/dark" />
+                </menu>
+            </item>
+            <!-- Sottomenu: Video  -->
+            <item
+                android:id="@+id/menu_item_video"
+                android:checkableBehavior="single"
+                android:title="@string/video_fullscreen">
+                <menu>
+                    <item
+                        android:id="@+id/fullScreen_true"
+                        android:checkable="true"
+                        android:title="@string/full_true" />
+                    <item
+                        android:id="@+id/fullScreen_false"
+                        android:checkable="true"
+                        android:title="@string/full_false" />
+                </menu>
+            </item>
+        </menu>
+    </item>
+
+    <!-- Altre voci del menu -->
+    <item
+        android:id="@+id/menu_item_about"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="@string/about"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_item_help"
+        android:icon="@android:drawable/ic_menu_help"
+        android:title="@string/help"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_item_exit"
+        android:icon="@android:drawable/ic_lock_power_off"
+        android:title="@string/exit"
+        app:showAsAction="never" />
+</menu>
