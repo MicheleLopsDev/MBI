@@ -84,7 +84,7 @@ librerie e framework moderni.
    ```bash
    git clone https://github.com/MicheleLopsDev/mbi.git
    ```
-2. **Importa** in *Android Studio Giraffe* (o superiore).
+2. **Importa** in *Android Studio* 
 3. **Inserisci la tua chiave Pixabay**:
     * apri l’app → **Menu ▸ Impostazioni ▸ Chiave Pixabay**
 4. **Esegui** l’app su un device/emulatore con **Android 8.0(Oreo)** o superiore.
