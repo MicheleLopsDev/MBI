@@ -1,4 +1,4 @@
-# MBI – Multimedia Service Buddy
+# MBI – Multimedia Buddy Interface
 
 [![Licenza MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Collaborazione AI](https://img.shields.io/badge/AI-Collaborative%20Development-blue)](https://example.com)
