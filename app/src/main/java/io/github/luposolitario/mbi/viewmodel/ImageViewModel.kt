@@ -4,10 +4,14 @@ package io.github.luposolitario.mbi.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.luposolitario.mbi.model.Hit // Assicurati che Hit sia Parcelable
 import io.github.luposolitario.mbi.service.PixbayImageService
+import javax.inject.Inject
 
-class ImageViewModel(
+
+@HiltViewModel
+class ImageViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val service: PixbayImageService
 ) : ViewModel() {
@@ -24,15 +28,6 @@ class ImageViewModel(
     // LiveData gestito da SavedStateHandle per l'oggetto Hit corrente
     private val _currentImage = savedStateHandle.getLiveData<Hit?>(KEY_CURRENT_HIT)
     val currentImage: LiveData<Hit?> = _currentImage // Espone LiveData<Hit?> [Source 173]
-
-    // LiveData per il totale dei risultati
-//    private val _totalResults = savedStateHandle.getLiveData<Int>(KEY_TOTAL_RESULTS, 0)
-//    val totalResults: LiveData<Int> = _totalResults
-
-    // LiveData per l'indice e la query (possono rimanere come prima)
-//    private var currentImageIndex: LiveData<Int?> = savedStateHandle.getLiveData(KEY_CURRENT_INDEX)
-//    private var currentQuery: LiveData<String?> = savedStateHandle.getLiveData(KEY_QUERY)
-
 
     init {
         // Se non c'è Hit salvato e nessuna query, carica i dati iniziali

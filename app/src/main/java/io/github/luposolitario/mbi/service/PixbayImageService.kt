@@ -2,6 +2,7 @@ package io.github.luposolitario.mbi.service
 
 import android.content.Context
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.PixabayRequest
 import io.github.luposolitario.mbi.model.PixbayResponse
@@ -15,8 +16,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.LinkedList
 import java.util.Properties
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PixbayImageService(context: Context) : MediaService<Hit> {
+@Singleton
+class PixbayImageService @Inject constructor(@ApplicationContext context: Context) :
+    MediaService<Hit> {
 
     private val prefs = context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
     private var apiKey: String

@@ -55,6 +55,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.github.chrisbanes.photoview.PhotoView
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
 import io.github.luposolitario.mbi.service.PixbayImageService
@@ -62,12 +63,13 @@ import io.github.luposolitario.mbi.service.PixbayVideoService
 import io.github.luposolitario.mbi.service.RadioBrowserService
 import io.github.luposolitario.mbi.util.SettingsActivity
 import io.github.luposolitario.mbi.viewmodel.ImageViewModel
-import io.github.luposolitario.mbi.viewmodel.ImageViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     // Variabile globale per tenere traccia del tipo di media selezionato
@@ -104,13 +106,16 @@ class MainActivity : AppCompatActivity() {
     private var query = ""
     private var currentScaleTypeIndex = 0
     private var offset = 10
-    private lateinit var pixbayImageService: PixbayImageService
+    @Inject
+    lateinit var pixbayImageService: PixbayImageService
     private lateinit var pixbayVideoService: PixbayVideoService
     private lateinit var radioBrowserService: RadioBrowserService
     private var currentMedia: Hit? = null
     private var currentRadio: HitRadio? = null
 
-    private lateinit var imageViewModel: ImageViewModel
+//    private lateinit var imageViewModel: ImageViewModel
+
+    private val imageViewModel: ImageViewModel by viewModels()
 
     private val scaleTypes = arrayOf(
         ImageView.ScaleType.CENTER_CROP,
@@ -135,17 +140,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Inizializza ImageService passando il contesto dell'applicazione
-        pixbayImageService = PixbayImageService(applicationContext)
+//        pixbayImageService = PixbayImageService(applicationContext)
         pixbayVideoService = PixbayVideoService(applicationContext)
         radioBrowserService = RadioBrowserService(applicationContext)
 
         // --- Inizializza ViewModel ---
         // CREA L'ISTANZA DELLA FACTORY (CONTROLLA BENE GLI ARGOMENTI QUI!)
-        val factory = ImageViewModelFactory(this, pixbayImageService, intent?.extras)
+//        val factory = ImageViewModelFactory(this, pixbayImageService, intent?.extras)
 
         // USA LA FACTORY CON by viewModels
-        val imageViewModel: ImageViewModel by viewModels { factory }
-        this.imageViewModel = imageViewModel
+//        val imageViewModel: ImageViewModel by viewModels { factory }
+//        this.imageViewModel = imageViewModel
 
 
         this.imageViewModel.currentImage.observe(this) {

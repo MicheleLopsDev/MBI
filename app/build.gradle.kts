@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.devtools.ksp") version "2.0.21-1.0.27"
+    id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     kotlin("plugin.parcelize") // 👈 AGGIUNGI QUESTO
 }
@@ -67,7 +69,7 @@ dependencies {
 
     // Aggiungi Glide per il caricamento delle immagini
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    ksp("com.github.bumptech.glide:ksp:4.16.0")
 
     //photoview
     implementation("io.github.baseflow:photoview:2.3.0")
@@ -121,4 +123,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
     implementation("com.google.accompanist:accompanist-themeadapter-material3:0.36.0")
+
+    implementation("com.google.dagger:hilt-android:2.56.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.1")
 }
