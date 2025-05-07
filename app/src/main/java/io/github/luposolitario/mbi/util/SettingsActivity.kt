@@ -7,6 +7,7 @@ import android.view.ContextThemeWrapper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StyleRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -43,24 +49,24 @@ import kotlinx.coroutines.flow.asStateFlow
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE) // [Source 7]
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         val themePref = sharedPref.getString("selected_theme", "light")
         var darkMode = false
 
-        if (themePref == "dark") {
+        if (themePref.equals("dark")) {
             setTheme(R.style.Theme_MBI_Dark)
             darkMode = true
         } else {
-            setTheme(R.style.Theme_MBI) // [Source 8]
+            setTheme(R.style.Theme_MBI)
         }
 
         super.onCreate(savedInstanceState)
         setContent {
-            MBITheme(useDarkTheme = darkMode) {       // composable custom
+            MBITheme(useDarkTheme = darkMode) {
                 SettingsScreen(
-                    onSave = {            // ⬅️ definisci cosa succede dopo il Salva
-                        setResult(RESULT_OK)   // facoltativo: segnala “operazione riuscita”
-                        finish()               // chiudi l’Activity → torni alla Main
+                    onSave = {
+                        setResult(RESULT_OK)
+                        finish()
                     }
                 )
             }
@@ -101,14 +107,14 @@ class SettingsViewModelFactory(private val ctx: Context) : ViewModelProvider.Fac
 @Composable
 fun SettingsPreviewLight() {
     XmlTheme(R.style.Theme_MBI) {
-        PreviewContent()         // composable wrapper senza parametri (vedi sotto)
+        PreviewContent()
     }
 }
 
 @Preview(
     name = "Settings • Dark",
     showBackground = true,
-    backgroundColor = 0xFF000000,      // ← FF (opaco) + 000000 (nero)
+    backgroundColor = 0xFF000000,
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     showSystemUi = true
 )
@@ -143,7 +149,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
 ) {
     val key by viewModel.apiKey.collectAsState()
-    // val activity = LocalActivity.current as? Activity     // ⬅️ reference
+    val uriHandler = LocalUriHandler.current // Ottieni l'handler per gestire gli URI
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -154,10 +161,45 @@ fun SettingsScreen(
         Text("Chiave Pixabay", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
 
+        // Testo esplicativo per l'utente
+        Text(
+            text = "Per ottenere una chiave API, visita il sito di Pixabay, registrati e richiedi la chiave.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp)) // Piccolo spazio tra testo e link
+
+        // Testo che funge da link
+        val pixabayLink = "https://pixabay.com/it/"
+        val annotatedLinkString = buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline
+                )
+            ) {
+                append(pixabayLink)
+            }
+            // Puoi aggiungere un Tag per il link se necessario per accessibilità o altri scopi, ma per aprire un URL diretto LocalUriHandler non ne ha bisogno.
+            // addStringAnnotation(tag = "URL", annotation = pixabayLink, start = 0, end = pixabayLink.length)
+        }
+
+        Text(
+            text = annotatedLinkString,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.clickable {
+                // Gestisci il click per aprire il link nel browser
+                uriHandler.openUri(pixabayLink)
+            }
+        )
+
+        Spacer(Modifier.height(8.dp)) // Spazio dopo il link e prima del campo di input
+
         OutlinedTextField(
             value = key,
             onValueChange = viewModel::onKeyChange,
             singleLine = true,
+            label = { Text("Inserisci la tua chiave API qui") }, // Puoi aggiungere una label per maggiore chiarezza
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -171,10 +213,10 @@ fun SettingsScreen(
 
             Button(
                 onClick = {
-                    onSave()           // 2️⃣ delega l’azione di uscita al caller
+                    onSave()
                 },
                 modifier = Modifier
-                    .weight(1f)              // 50 % larghezza
+                    .weight(1f)
                     .fillMaxWidth()
             ) {
                 Text("Chiudi")
@@ -183,11 +225,11 @@ fun SettingsScreen(
 
             Button(
                 onClick = {
-                    viewModel.save()   // 1️⃣ salva la preferenza
-                    onSave()           // 2️⃣ delega l’azione di uscita al caller
+                    viewModel.save()
+                    onSave()
                 },
                 modifier = Modifier
-                    .weight(1f)              // 50 % larghezza
+                    .weight(1f)
                     .fillMaxWidth()
             ) {
                 Text("Salva")
@@ -212,6 +254,6 @@ private fun XmlTheme(
     }
 
     CompositionLocalProvider(LocalContext provides themedCtx) {
-        Mdc3Theme { content() }   // ⬅️ adapter per Material 3
+        Mdc3Theme { content() }
     }
 }

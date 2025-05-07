@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         // --- Setup Tema e ViewModel ---
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE) // [Source 7]
         val themePref = sharedPref.getString("selected_theme", "light")
-        if (themePref == "dark") {
+        if (!themePref.equals("dark")) {
             setTheme(R.style.Theme_MBI)
         } else {
             setTheme(R.style.Theme_MBI_Dark) // [Source 8]
