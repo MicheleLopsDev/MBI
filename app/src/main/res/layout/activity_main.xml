@@ -1,117 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:material="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
 
-    <!-- Guideline per la parte bassa (navigazione) -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintGuide_percent="0.9" />
-
-    <!-- Top Bar -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Top App Bar -->
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/topBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        material:menu="@menu/my_menu"
+        material:title="MBI"
+        material:titleTextAppearance="?attr/textAppearanceHeadlineSmall" />
 
-        <TextView
-            android:id="@+id/recordIndicator2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:text="00000000"
-            android:textAlignment="center"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintStart_toEndOf="@+id/recordIndicator"
-            app:layout_constraintTop_toTopOf="@+id/recordIndicator3" />
-
-        <TextView
-            android:id="@+id/appName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="MBI"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/menuButton" />
-
-        <ImageButton
-            android:id="@+id/menuButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/menu"
-            android:src="@android:drawable/ic_menu_more"
-            app:layout_constraintStart_toEndOf="@+id/appName"
-            app:layout_constraintTop_toTopOf="@+id/recordIndicator" />
-
-        <TextView
-            android:id="@+id/recordIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="00000000"
-            android:textAlignment="textStart"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintStart_toEndOf="@+id/menuButton"
-            app:layout_constraintTop_toTopOf="@+id/recordIndicator2" />
-
-        <TextView
-            android:id="@+id/recordIndicator3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="00000000"
-            android:textAlignment="textStart"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/recordIndicator2"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- 🔽 Nuovo blocco topInfo -->
-    <LinearLayout
-        android:id="@+id/topInfo"
+    <!-- Additional Info -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/topInfoCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="8dp"
+        android:layout_margin="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBar">
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        material:cardCornerRadius="8dp"
+        material:cardElevation="2dp">
 
         <TextView
             android:id="@+id/topInfoText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="14dp"
-            android:layout_weight="1"
+            android:padding="16dp"
             android:text="Informazioni aggiuntive"
             android:textAlignment="center"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="18sp"
-            tools:layout_marginStart="14dp" />
-    </LinearLayout>
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-    <!-- Type Selector -->
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Type Selector Buttons -->
     <LinearLayout
         android:id="@+id/typeSelector"
         android:layout_width="0dp"
@@ -120,78 +53,74 @@
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topInfo">
+        app:layout_constraintTop_toBottomOf="@id/topInfoCard">
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnImages"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/immagine"
-            android:src="@android:drawable/ic_menu_gallery" />
+            material:icon="@drawable/ic_menu_gallery"
+            material:iconGravity="textStart" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnVideos"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/video"
-            android:src="@android:drawable/ic_media_play" />
+            material:icon="@drawable/ic_video"
+            material:iconGravity="textStart" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAudios"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/audio"
-            android:src="@android:drawable/ic_btn_speak_now" />
+            material:icon="@drawable/ic_audio"
+            material:iconGravity="textStart" />
+
     </LinearLayout>
 
     <!-- Search Bar -->
-    <LinearLayout
-        android:id="@+id/searchBar"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/searchInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:padding="8dp"
+        app:boxStrokeColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/typeSelector">
+        app:layout_constraintTop_toBottomOf="@id/typeSelector"
+        app:startIconContentDescription="@string/cerca"
+        app:startIconDrawable="@drawable/ic_search">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/searchInput"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/searchInputBackground"
-            android:elevation="2dp"
-            android:hint="Cerca..."
+            android:hint="@string/cerca_hint"
             android:inputType="text" />
 
-        <ImageButton
-            android:id="@+id/btnSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/cerca"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_search" />
-    </LinearLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Media Viewer -->
-    <FrameLayout
-        android:id="@+id/mediaLayer"
+    <!-- Media Viewer Container -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/mediaLayerCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="8dp"
-        android:background="?attr/colorBackground"
         app:layout_constraintBottom_toTopOf="@id/navigationButtons"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchBar" />
+        app:layout_constraintTop_toBottomOf="@id/searchInputLayout"
+        material:cardCornerRadius="8dp"
+        material:cardElevation="4dp" />
 
     <!-- Navigation Buttons -->
     <LinearLayout
@@ -202,54 +131,47 @@
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mediaLayer">
+        app:layout_constraintStart_toStartOf="parent">
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRew"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/rew"
-            android:src="@android:drawable/ic_media_rew" />
+            material:icon="@android:drawable/ic_media_rew" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevious"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/precedente"
-            android:src="@android:drawable/ic_media_previous" />
+            material:icon="@android:drawable/ic_media_previous" />
 
-
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFirst"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/primo"
-            android:src="@android:drawable/ic_menu_revert" />
+            material:icon="@drawable/ic_home" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/successivo"
-            android:src="@android:drawable/ic_media_next" />
+            material:icon="@android:drawable/ic_media_next" />
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFw"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/fw"
-            android:src="@android:drawable/ic_media_ff" />
+            material:icon="@android:drawable/ic_media_ff" />
 
     </LinearLayout>
 

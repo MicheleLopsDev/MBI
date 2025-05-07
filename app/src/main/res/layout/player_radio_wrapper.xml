@@ -1,44 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:material="http://schemas.android.com/apk/res-auto"
     android:id="@+id/radio_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/copertine_view"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/copertine_card"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="9"
-        android:background="@color/gray"
-        app:shutter_background_color="@color/gray">
+        material:cardCornerRadius="8dp"
+        material:cardElevation="2dp">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/radio_imageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="radio icon"
-            android:src="@drawable/pngtreevector_radio_icon_4091198"
-            tools:srcCompat="@drawable/pngtreevector_radio_icon_4091198" />
-    </FrameLayout>
+            android:contentDescription="@string/radio_icon"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+            app:srcCompat="@drawable/pngtreevector_radio_icon_4091198" />
+    </com.google.android.material.card.MaterialCardView>
 
-    <FrameLayout
-        android:id="@+id/comtrolli_view"
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/player_radio_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/player_radio_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/black"
-            app:controller_layout_id="@layout/custom_player_radio_controls"
-            app:resize_mode="fit"
-            app:shutter_background_color="@color/black"
-            app:use_controller="true" />
-    </FrameLayout>
+        android:layout_weight="1"
+        android:background="?attr/colorSurfaceVariant"
+        app:controller_layout_id="@layout/custom_player_radio_controls"
+        app:resize_mode="fit"
+        app:shutter_background_color="?attr/colorOnSurface"
+        app:use_controller="true" />
 
 </LinearLayout>

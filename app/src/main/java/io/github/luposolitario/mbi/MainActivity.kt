@@ -23,11 +23,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -55,6 +53,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.github.chrisbanes.photoview.PhotoView
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
@@ -88,9 +88,10 @@ class MainActivity : AppCompatActivity() {
     private var currentMediaType = MEDIA_TYPE_IMAGE
 
     // Riferimenti ai pulsanti per un accesso più semplice
-    private lateinit var btnImages: ImageButton
-    private lateinit var btnVideos: ImageButton
-    private lateinit var btnAudios: ImageButton
+    private lateinit var btnImages: MaterialButton
+    private lateinit var btnVideos: MaterialButton
+    private lateinit var btnAudios: MaterialButton
+    private lateinit var topAppBar: MaterialToolbar
 
     // Riferimenti ai visualizzatori di media
     private lateinit var playerContainer: FrameLayout
@@ -187,11 +188,12 @@ class MainActivity : AppCompatActivity() {
     // Funzione per ottenere i riferimenti alle View
     private fun initializeCoreViews() {
         Log.d(TAG, "Initializing core views...")
-        playerContainer = findViewById(R.id.mediaLayer) // [Source 18]
+        playerContainer = findViewById(R.id.mediaLayerCard) // [Source 18]
         searchInput = findViewById(R.id.searchInput) // [Source 18]
         btnImages = findViewById(R.id.btnImages) // [Source 18]
         btnVideos = findViewById(R.id.btnVideos) // [Source 18]
         btnAudios = findViewById(R.id.btnAudios) // [Source 18]
+        topAppBar = findViewById<MaterialToolbar>(R.id.topBar)
     }
 
     // Funzione per impostare i listener
@@ -203,7 +205,7 @@ class MainActivity : AppCompatActivity() {
         } // [Source 19]
         btnVideos.setOnClickListener { selectMediaType(MEDIA_TYPE_VIDEO) } // [Source 19]
         btnAudios.setOnClickListener { selectMediaType(MEDIA_TYPE_AUDIO) } // [Source 19]
-        findViewById<ImageButton>(R.id.btnPrevious).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnPrevious).setOnClickListener {
             Log.d(TAG, "Previous button clicked")
             // Qui implementerai la navigazione al media precedente
             when (getCurrentMediaType()) {
@@ -242,7 +244,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 29]
-        findViewById<ImageButton>(R.id.btnFirst).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnFirst).setOnClickListener {
             Log.d(TAG, "First button clicked")
             // Qui implementerai la navigazione al primo media
             when (getCurrentMediaType()) {
@@ -283,7 +285,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 33]
-        findViewById<ImageButton>(R.id.btnNext).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnNext).setOnClickListener {
             Log.d(TAG, "Next button clicked")
             // Qui implementerai la navigazione al media successivo
             when (getCurrentMediaType()) {
@@ -322,38 +324,47 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 37]
-        findViewById<ImageButton>(R.id.menuButton).setOnClickListener { view ->
-            Log.d(TAG, "Menu button clicked")
-            showPopupMenu(view)
-        } // [Source 20]
-        findViewById<ImageButton>(R.id.btnSearch).setOnClickListener {
-            val searchInput: EditText = findViewById(R.id.searchInput)
-            Log.d(TAG, "Search initiated with query: ${searchInput.text}")
-            // Qui andrebbe implementata la logica di ricerca
-            query = searchInput.text.toString()
-            when (getCurrentMediaType()) {
-                MEDIA_TYPE_IMAGE -> {
-                    imageViewModel.search(query)
+//        findViewById<MaterialButton>(R.id.topBar).setOnClickListener { view ->
+//            Log.d(TAG, "Menu button clicked")
+//            showPopupMenu(view)
+//        } // [Source 20]
+
+
+        topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+
+                R.id.search -> {
+                    val searchInput: EditText = findViewById(R.id.searchInput)
+                    Log.d(TAG, "Search initiated with query: ${searchInput.text}")
+                    // Qui andrebbe implementata la logica di ricerca
+                    query = searchInput.text.toString()
+                    when (getCurrentMediaType()) {
+                        MEDIA_TYPE_IMAGE -> {
+                            imageViewModel.search(query)
+                        }
+
+                        MEDIA_TYPE_VIDEO -> {
+                            pixbayVideoService.searchMedia(query) { apiResponse ->
+                                handleMediaResponse(apiResponse)
+                                updateResultsInfo()
+                            }
+                        }
+
+                        MEDIA_TYPE_AUDIO -> {
+                            radioBrowserService.searchMedia(query) { apiResponse ->
+                                handleRadioResponse(apiResponse)
+                                updateResultsInfo()
+                            }
+                        }
+                    }
+                    true
                 }
 
-                MEDIA_TYPE_VIDEO -> {
-                    pixbayVideoService.searchMedia(query) { apiResponse ->
-                        handleMediaResponse(apiResponse)
-                        updateResultsInfo()
-                    }
-                }
-
-                MEDIA_TYPE_AUDIO -> {
-                    radioBrowserService.searchMedia(query) { apiResponse ->
-                        handleRadioResponse(apiResponse)
-                        updateResultsInfo()
-                    }
-                }
+                else -> false
             }
-        } // [Source 21]
+        }
 
-
-        findViewById<ImageButton>(R.id.btnFw).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnFw).setOnClickListener {
             Log.d(TAG, "Next button clicked")
             // Qui implementerai la navigazione al media successivo
             when (getCurrentMediaType()) {
@@ -392,7 +403,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 37]
-        findViewById<ImageButton>(R.id.btnRew).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnRew).setOnClickListener {
             Log.d(TAG, "Previous button clicked")
             // Qui implementerai la navigazione al media precedente
             when (getCurrentMediaType()) {
@@ -496,7 +507,7 @@ class MainActivity : AppCompatActivity() {
         uiScope.launch {
             /*****************************************************************************************************/
             // Pulizia se necessario
-            val mediaLayer = findViewById<FrameLayout>(R.id.mediaLayer)
+            val mediaLayer = findViewById<FrameLayout>(R.id.mediaLayerCard)
             mediaLayer.removeAllViews()
             player?.release()
             this@MainActivity.playerView = null
@@ -518,19 +529,19 @@ class MainActivity : AppCompatActivity() {
             playerView.setKeepContentOnPlayerReset(true) // opzionale
             playerView.setControllerBackgroundFromUrl(this@MainActivity, "", wrapperView)
             this@MainActivity.playerView = playerView
-            val fullButton = playerView.findViewById<ImageButton>(R.id.video_fullscreen)
+            val fullButton = playerView.findViewById<MaterialButton>(R.id.video_fullscreen)
             fullButton?.setOnClickListener {
                 toggleFullscreen()
             }
-            val playButton = playerView.findViewById<ImageButton>(R.id.video_play)
+            val playButton = playerView.findViewById<MaterialButton>(R.id.video_play)
             playButton?.setOnClickListener {
                 player?.play()
             }
-            val pauseButton = playerView.findViewById<ImageButton>(R.id.video_pause)
+            val pauseButton = playerView.findViewById<MaterialButton>(R.id.video_pause)
             pauseButton?.setOnClickListener {
                 player?.pause()
             }
-            val rewindButton = playerView.findViewById<ImageButton>(R.id.video_rewind)
+            val rewindButton = playerView.findViewById<MaterialButton>(R.id.video_rewind)
             rewindButton?.setOnClickListener {
                 player?.seekTo(0)
             }
@@ -588,7 +599,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Service is started stopping")
             }
 
-            val mediaLayer = findViewById<FrameLayout>(R.id.mediaLayer)
+            val mediaLayer = findViewById<FrameLayout>(R.id.mediaLayerCard)
             mediaLayer.removeAllViews()
             player?.release()
             this@MainActivity.playerView = null
@@ -699,7 +710,7 @@ class MainActivity : AppCompatActivity() {
 
 
             playerView.setKeepContentOnPlayerReset(true) // opzionale
-            val pauseButton = playerView.findViewById<ImageButton>(R.id.radio_pause)
+            val pauseButton = playerView.findViewById<MaterialButton>(R.id.radio_pause)
             pauseButton?.setOnClickListener {
                 if (RadioPlayerService.isRunning) {
                     val stopIntent =
@@ -710,7 +721,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Service is started stopping")
                 }
             }
-            val playButton = playerView.findViewById<ImageButton>(R.id.radio_play)
+            val playButton = playerView.findViewById<MaterialButton>(R.id.radio_play)
             playButton?.setOnClickListener {
                 val intent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
                     action = RadioPlayerService.ACTION_START
@@ -1032,7 +1043,7 @@ class MainActivity : AppCompatActivity() {
     @OptIn(UnstableApi::class)
     @SuppressLint("ClickableViewAccessibility")
     private fun setupMediaLayer(mediaType: Int) {
-        playerContainer = findViewById(R.id.mediaLayer)
+        playerContainer = findViewById(R.id.mediaLayerCard)
         if (currentMediaType != mediaType)
             playerContainer.removeAllViews()
 
@@ -1370,95 +1381,95 @@ class MainActivity : AppCompatActivity() {
 
         when (getCurrentMediaType()) {
             MEDIA_TYPE_IMAGE -> {
-                val totalResults = imageViewModel.getTotal()
-                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-                if (recordIndicator != null) {
-                    recordIndicator.text = "$totalResults"
-                    Log.d(TAG, recordIndicator.text.toString())
-                }
+//                val totalResults = imageViewModel.getTotal()
+//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
+//                if (recordIndicator != null) {
+//                    recordIndicator.text = "$totalResults"
+//                    Log.d(TAG, recordIndicator.text.toString())
+//                }
 
-                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-                if (recordIndicator2 != null) {
-                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
-                    Log.d(TAG, recordIndicator2.text.toString())
-                }
+//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
+//                if (recordIndicator2 != null) {
+//                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
+//                    Log.d(TAG, recordIndicator2.text.toString())
+//                }
 
-                val currentDisplayed =
-                    if (totalResults > 0) imageViewModel.getCurrentIndex() else 1
-                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-                if (recordIndicator3 != null) {
-                    recordIndicator3.text = "$currentDisplayed"
-                    Log.d(TAG, recordIndicator3.text.toString())
-                }
+//                val currentDisplayed =
+//                    if (totalResults > 0) imageViewModel.getCurrentIndex() else 1
+//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
+//                if (recordIndicator3 != null) {
+//                    recordIndicator3.text = "$currentDisplayed"
+//                    Log.d(TAG, recordIndicator3.text.toString())
+//                }
 
-                val topInfoText = findViewById<TextView>(R.id.topInfoText)
-                if (topInfoText != null) {
-                    topInfoText.text = imageViewModel.getCurrentItem()?.run {
-                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
-                    } ?: ""
-                    Log.d(TAG, topInfoText.text.toString())
-                }
+//                val topInfoText = findViewById<TextView>(R.id.topInfoText)
+//                if (topInfoText != null) {
+//                    topInfoText.text = imageViewModel.getCurrentItem()?.run {
+//                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
+//                    } ?: ""
+//                    Log.d(TAG, topInfoText.text.toString())
+//                }
 
             }
 
             MEDIA_TYPE_VIDEO -> {
-                val totalResults = pixbayVideoService.getTotal()
-                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-                if (recordIndicator != null) {
-                    recordIndicator.text = "$totalResults"
-                    Log.d(TAG, recordIndicator.text.toString())
-                }
+//                val totalResults = pixbayVideoService.getTotal()
+//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
+//                if (recordIndicator != null) {
+//                    recordIndicator.text = "$totalResults"
+//                    Log.d(TAG, recordIndicator.text.toString())
+//                }
 
-                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-                if (recordIndicator2 != null) {
-                    recordIndicator2.text = pixbayVideoService.getCurrentItem()?.id.toString()
-                    Log.d(TAG, recordIndicator2.text.toString())
-                }
+//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
+//                if (recordIndicator2 != null) {
+//                    recordIndicator2.text = pixbayVideoService.getCurrentItem()?.id.toString()
+//                    Log.d(TAG, recordIndicator2.text.toString())
+//                }
 
-                val currentDisplayed =
-                    if (totalResults > 0) pixbayVideoService.getCurrentIndex() + 1 else 0
-                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-                if (recordIndicator3 != null) {
-                    recordIndicator3.text = "$currentDisplayed"
-                    Log.d(TAG, recordIndicator3.text.toString())
-                }
+//                val currentDisplayed =
+//                    if (totalResults > 0) pixbayVideoService.getCurrentIndex() + 1 else 0
+//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
+//                if (recordIndicator3 != null) {
+//                    recordIndicator3.text = "$currentDisplayed"
+//                    Log.d(TAG, recordIndicator3.text.toString())
+//                }
 
-                val topInfoText = findViewById<TextView>(R.id.topInfoText)
-                if (topInfoText != null) {
-                    topInfoText.text = pixbayVideoService.getCurrentItem()?.run {
-                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
-                    } ?: ""
-                    Log.d(TAG, topInfoText.text.toString())
-                }
+//                val topInfoText = findViewById<TextView>(R.id.topInfoText)
+//                if (topInfoText != null) {
+//                    topInfoText.text = pixbayVideoService.getCurrentItem()?.run {
+//                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
+//                    } ?: ""
+//                    Log.d(TAG, topInfoText.text.toString())
+//                }
             }
 
             MEDIA_TYPE_AUDIO -> {
                 val totalResults = radioBrowserService.getTotal()
-                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-                if (recordIndicator != null) {
-                    recordIndicator.text = "$totalResults"
-                    Log.d(TAG, recordIndicator.text.toString())
-                }
+//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
+//                if (recordIndicator != null) {
+//                    recordIndicator.text = "$totalResults"
+//                    Log.d(TAG, recordIndicator.text.toString())
+//                }
 
-                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-                if (recordIndicator2 != null) {
-                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
-                    Log.d(TAG, recordIndicator2.text.toString())
-                }
+//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
+//                if (recordIndicator2 != null) {
+//                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
+//                    Log.d(TAG, recordIndicator2.text.toString())
+//                }
 
-                val recordIndicator4 = findViewById<TextView>(R.id.topInfoText)
-                if (recordIndicator4 != null) {
-                    recordIndicator4.text = radioBrowserService.getCurrentItem()?.name.toString()
-                    Log.d(TAG, recordIndicator2.text.toString())
-                }
+//                val recordIndicator4 = findViewById<TextView>(R.id.topInfoText)
+//                if (recordIndicator4 != null) {
+//                    recordIndicator4.text = radioBrowserService.getCurrentItem()?.name.toString()
+//                    Log.d(TAG, recordIndicator2.text.toString())
+//                }
 
-                val currentDisplayed =
-                    if (totalResults > 0) radioBrowserService.getCurrentIndex() + 1 else 0
-                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-                if (recordIndicator3 != null) {
-                    recordIndicator3.text = "$currentDisplayed"
-                    Log.d(TAG, recordIndicator3.text.toString())
-                }
+//                val currentDisplayed =
+//                    if (totalResults > 0) radioBrowserService.getCurrentIndex() + 1 else 0
+//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
+//                if (recordIndicator3 != null) {
+//                    recordIndicator3.text = "$currentDisplayed"
+//                    Log.d(TAG, recordIndicator3.text.toString())
+//                }
             }
 
         }

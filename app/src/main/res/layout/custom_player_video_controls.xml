@@ -1,45 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:material="http://schemas.android.com/apk/res-auto"
     android:id="@+id/controller_video_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center_horizontal"
-    android:background="@drawable/lovepik_com_380557531_television_clipart_old_tv_retro_cartoon_vintage_vector"
-    android:gravity="center"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:gravity="center"
     android:padding="8dp">
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/video_fullscreen"
-        style="@style/ExoStyledControls.Button.Bottom.FullScreen"
+        style="?attr/materialIconButtonStyle"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="12dp" />
+        android:layout_marginHorizontal="12dp"
+        android:contentDescription="@string/fullscreen"
+        material:icon="@drawable/ic_fullscreen" />
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/video_rewind"
-        style="@style/ExoMediaButton.Rewind"
+        style="?attr/materialIconButtonStyle"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="12dp" />
+        android:layout_marginHorizontal="12dp"
+        android:contentDescription="@string/rewind"
+        material:icon="@drawable/ic_rewind" />
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/video_play"
-        style="@style/ExoMediaButton.Play"
+        style="?attr/materialIconButtonStyle"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="12dp" />
+        android:layout_marginHorizontal="12dp"
+        android:contentDescription="@string/play_video"
+        material:icon="@drawable/ic_play" />
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/video_pause"
-        style="@style/ExoMediaButton.Pause"
+        style="?attr/materialIconButtonStyle"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="12dp" />
-
+        android:layout_marginHorizontal="12dp"
+        android:contentDescription="@string/pause_video"
+        material:icon="@drawable/ic_pause" />
 
 </LinearLayout>

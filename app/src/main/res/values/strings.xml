@@ -30,4 +30,15 @@
     <string name="full_true">video fullscreen</string>
     <string name="full_false">normal screen</string>
     <string name="imposta_chiave_pixabay">Imposta chiave Pixabay</string>
+    <string name="svg_triangle">AnimatedSvgTest</string>
+    <string name="play_radio">play</string>
+    <string name="svg_pause">pause</string>
+    <string name="play_video">play</string>
+    <string name="pause_video">pause</string>
+    <string name="pause_radio">pause</string>
+    <string name="fullscreen">full</string>
+    <string name="rewind">rew</string>
+    <string name="radio_icon">radio</string>
+    <string name="cerca_hint">Cerca</string>
+    <string name="search">cerca</string>
 </resources>

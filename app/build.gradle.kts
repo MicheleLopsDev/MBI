@@ -126,4 +126,8 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.56.1")
     ksp("com.google.dagger:hilt-android-compiler:2.56.1")
+
+    implementation("androidx.compose.material:material-icons-core:1.6.7") // Usa l'ultima versione stabile compatibile con la tua versione di Compose UI
+    implementation("androidx.compose.material:material-icons-extended:1.6.7") // Usa l'ultima versione stabile compatibile con la tua versione di Compose UI
+
 }

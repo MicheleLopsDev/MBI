@@ -7,10 +7,11 @@
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_video_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/gray"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
         app:controller_layout_id="@layout/custom_player_video_controls"
         app:resize_mode="fit"
-        app:shutter_background_color="@color/gray"
+        app:shutter_background_color="?attr/colorOnSurface"
         app:use_controller="true" />
+
 </FrameLayout>
