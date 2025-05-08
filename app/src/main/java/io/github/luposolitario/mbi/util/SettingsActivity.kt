@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.luposolitario.mbi.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,32 +54,31 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /** Activity host della schermata */
 class SettingsActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        // Rimuovi il codice per impostare il tema XML qui
-        // setTheme(...) non è necessario con un tema Compose nativo nel setContent
+    // ① Creo (o recupero) il ViewModel una sola volta, con la factory
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        SettingsViewModelFactory(this)
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Leggi la preferenza del tema per passarla al tema Compose
+        // leggere la preferenza tema…
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         val themePref = sharedPref.getString("selected_theme", "light")
-        val useDarkTheme = themePref == "dark" // Booleano per il tema scuro
+        val useDarkTheme = themePref == "dark"
 
         setContent {
-            // Applica il tema Material 3 nativo in Compose
             AppTheme(useDarkTheme = useDarkTheme) {
+                // ② Passo la stessa istanza di VM al Composable
                 SettingsScreen(
+                    viewModel = settingsViewModel,
                     onSave = {
-                        // Logica per salvare e chiudere l'Activity
-                        val settingsViewModel =
-                            SettingsViewModel(this) // Ottieni il ViewModel qui per salvare
-                        settingsViewModel.save()
+                        settingsViewModel.save()  // usa sempre la stessa istanza
                         setResult(RESULT_OK)
                         finish()
                     },
                     onClose = {
-                        // Logica per chiudere l'Activity senza salvare (es. al click sul tasto Indietro)
-                        setResult(RESULT_CANCELED) // Opzionale: segnala cancellazione
+                        setResult(RESULT_CANCELED)
                         finish()
                     }
                 )
@@ -87,6 +86,7 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 }
+
 
 /** ViewModel che incapsula l’accesso a SharedPreferences */
 class SettingsViewModel(context: Context) : ViewModel() {
@@ -214,7 +214,7 @@ private fun PreviewContent() {
 fun SettingsScreen(
     onSave: () -> Unit, // Callback per l'azione Salva
     onClose: () -> Unit, // Callback per l'azione Chiudi/Indietro
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(LocalContext.current))
+    viewModel: SettingsViewModel
 ) {
     val key by viewModel.apiKey.collectAsState()
     val uriHandler = LocalUriHandler.current // Ottieni l'handler per gestire gli URI
