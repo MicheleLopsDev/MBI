@@ -1451,11 +1451,11 @@ class MainActivity : AppCompatActivity() {
 
                 // Restituisci la stringa per la Top App Bar (solo indice/totale)
                 if (totalResults > 0) {
-                    "Img: ${currentIndex}/${totalResults}"
+                    "Image: ${currentIndex} - ${totalResults}"
                 } else if (query.isNotBlank()) {
-                    "Img: Nessun risultato per \"$query\""
+                    "Image: Nessun risultato per \"$query\""
                 } else {
-                    "Img: Nessun risultato"
+                    "Image: Nessun risultato"
                 }
             }
 
@@ -1469,7 +1469,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Restituisci la stringa per la Top App Bar (solo indice/totale)
                 if (totalResults > 0) {
-                    "Video: ${currentIndex}/${totalResults}"
+                    "Video: ${currentIndex} - ${totalResults}"
                 } else if (query.isNotBlank()) {
                     "Video: Nessun risultato per \"$query\""
                 } else {
@@ -1487,7 +1487,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Restituisci la stringa per la Top App Bar (solo indice/totale)
                 if (totalResults > 0) {
-                    "Radio: ${currentIndex}/${totalResults}"
+                    "Radio: ${currentIndex} - ${totalResults}"
                 } else if (query.isNotBlank()) {
                     "Radio: Nessun risultato per \"$query\""
                 } else {
@@ -1507,7 +1507,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "Top AppBar Title: $infoTextTopBar")
 
         // Imposta il sottotitolo della top bar come vuoto
-        topAppBar.subtitle = "Buddy"
+        topAppBar.subtitle = "Multimedia Buddy :-) "
         Log.d(TAG, "Top AppBar Subtitle: ${topAppBar.subtitle}")
     }
 
