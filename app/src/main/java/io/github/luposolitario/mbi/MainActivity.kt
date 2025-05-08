@@ -12,11 +12,12 @@ import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +26,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -55,6 +56,8 @@ import com.bumptech.glide.request.transition.Transition
 import com.github.chrisbanes.photoview.PhotoView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
@@ -67,6 +70,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -87,14 +95,22 @@ class MainActivity : AppCompatActivity() {
     // Variabile per tenere traccia del tipo di media attualmente selezionato
     private var currentMediaType = MEDIA_TYPE_IMAGE
 
-    // Riferimenti ai pulsanti per un accesso più semplice
+    // Riferimenti alle View per un accesso più semplice
     private lateinit var btnImages: MaterialButton
     private lateinit var btnVideos: MaterialButton
     private lateinit var btnAudios: MaterialButton
     private lateinit var topAppBar: MaterialToolbar
+    private lateinit var searchInputLayout: TextInputLayout
+    private lateinit var btnPrevious: MaterialButton
+    private lateinit var btnFirst: MaterialButton
+    private lateinit var btnNext: MaterialButton
+    private lateinit var btnFw: MaterialButton
+    private lateinit var btnRev: MaterialButton
+    private lateinit var topInfoText: TextView
+
 
     // Riferimenti ai visualizzatori di media
-    private lateinit var playerContainer: FrameLayout
+    private lateinit var playerContainer: MaterialCardView
     private lateinit var imageViewer: PhotoView
     private var playerView: PlayerView? = null
     private var player: ExoPlayer? = null
@@ -113,8 +129,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var radioBrowserService: RadioBrowserService
     private var currentMedia: Hit? = null
     private var currentRadio: HitRadio? = null
-
-//    private lateinit var imageViewModel: ImageViewModel
 
     private val imageViewModel: ImageViewModel by viewModels()
 
@@ -145,15 +159,6 @@ class MainActivity : AppCompatActivity() {
         pixbayVideoService = PixbayVideoService(applicationContext)
         radioBrowserService = RadioBrowserService(applicationContext)
 
-        // --- Inizializza ViewModel ---
-        // CREA L'ISTANZA DELLA FACTORY (CONTROLLA BENE GLI ARGOMENTI QUI!)
-//        val factory = ImageViewModelFactory(this, pixbayImageService, intent?.extras)
-
-        // USA LA FACTORY CON by viewModels
-//        val imageViewModel: ImageViewModel by viewModels { factory }
-//        this.imageViewModel = imageViewModel
-
-
         this.imageViewModel.currentImage.observe(this) {
             uiScope.launch {
                 loadImageWithGlide(it?.largeImageURL.toString())
@@ -176,6 +181,9 @@ class MainActivity : AppCompatActivity() {
         // --- 1. Inizializza SEMPRE le view principali ---
         initializeCoreViews() // Prende riferimenti a mediaViewer, bottoni, searchInput
 
+        // --- IMPOSTA LA TOOLBAR COME ACTION BAR DELL'ACTIVITY ---
+        setSupportActionBar(topAppBar) // <--- AGGIUNGI QUESTA RIGA
+
         // --- 2. Configura i listener che devono essere sempre attivi ---
         setupListeners(savedInstanceState) // Imposta onClickListeners per bottoni, menu, search
 
@@ -185,8 +193,82 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        // Gonfia il menu; questo aggiunge voci alla action bar se è presente.
+        menuInflater.inflate(R.menu.my_menu, menu)
+        return true // true per mostrare il menu, false per non mostrarlo
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        // Viene chiamato appena prima che il menu venga mostrato.
+        // Puoi modificare gli elementi del menu qui.
+
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val themePref = sharedPref.getString("selected_theme", "light")
+        val videoPref = sharedPref.getString("selected_video", "false")
+        val currentScaleTypeIndexPref = sharedPref.getString("currentScaleTypeIndex", "3")
+
+        // Esempio: Mostra/nascondi le opzioni di Scale Type solo per le immagini
+        val scaleTypeMenuItem =
+            menu?.findItem(R.id.menu_item_scaleType) // Assicurati che l'ID corrisponda
+        val themeMenuItem = menu?.findItem(R.id.menu_item_theme) // Assicurati che l'ID corrisponda
+        val fullscreenOptionsMenuItem =
+            menu?.findItem(R.id.menu_item_video) // Assicurati di avere un ID per le opzioni fullscreen
+
+        if (getCurrentMediaType() == MEDIA_TYPE_IMAGE) {
+            scaleTypeMenuItem?.isVisible = true
+            // Potresti anche voler mostrare/nascondere i sottomenu se necessario
+            scaleTypeMenuItem?.subMenu?.setGroupVisible(
+                R.id.menu_item_scaleType,
+                true
+            ) // Se hai un gruppo per scale types
+
+            val label =
+                getFormattedScaleTypeNameFromOrdinal(currentScaleTypeIndexPref?.toInt() ?: 3)
+
+            scaleTypeMenuItem?.subMenu?.forEach({ menuItem ->
+                if (label == menuItem.title) {
+                    menuItem.isChecked = true
+                }
+            })
+        } else {
+            scaleTypeMenuItem?.isVisible = false
+            scaleTypeMenuItem?.subMenu?.setGroupVisible(
+                R.id.menu_item_scaleType,
+                false
+            ) // Nascondi il gruppo scale types
+        }
+
+        // Esempio: Mostra/nascondi le opzioni di fullscreen per video
+        if (getCurrentMediaType() == MEDIA_TYPE_VIDEO) {
+            fullscreenOptionsMenuItem?.isVisible = true
+            fullscreenOptionsMenuItem?.subMenu?.forEach({ menuItem ->
+                if (videoPref == menuItem.title) {
+                    menuItem.isChecked = true
+                }
+            })
+        } else {
+            fullscreenOptionsMenuItem?.isVisible = false
+        }
+
+        themeMenuItem?.subMenu?.forEach({ menuItem ->
+            if (themePref == menuItem.title) {
+                menuItem.isChecked = true
+            }
+        })
+
+
+        // Puoi fare lo stesso per altre voci di menu che dipendono dal tipo di media.
+
+        // Chiama super per far continuare la preparazione standard (es. icone)
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+
     // Funzione per ottenere i riferimenti alle View
     private fun initializeCoreViews() {
+
         Log.d(TAG, "Initializing core views...")
         playerContainer = findViewById(R.id.mediaLayerCard) // [Source 18]
         searchInput = findViewById(R.id.searchInput) // [Source 18]
@@ -194,6 +276,13 @@ class MainActivity : AppCompatActivity() {
         btnVideos = findViewById(R.id.btnVideos) // [Source 18]
         btnAudios = findViewById(R.id.btnAudios) // [Source 18]
         topAppBar = findViewById<MaterialToolbar>(R.id.topBar)
+        searchInputLayout = findViewById(R.id.searchInputLayout)
+        btnPrevious = findViewById(R.id.btnPrevious)
+        btnFirst = findViewById(R.id.btnFirst)
+        btnNext = findViewById(R.id.btnNext)
+        btnFw = findViewById(R.id.btnFw)
+        btnRev = findViewById<MaterialButton>(R.id.btnRew)
+        topInfoText = findViewById(R.id.topInfoText)
     }
 
     // Funzione per impostare i listener
@@ -205,7 +294,7 @@ class MainActivity : AppCompatActivity() {
         } // [Source 19]
         btnVideos.setOnClickListener { selectMediaType(MEDIA_TYPE_VIDEO) } // [Source 19]
         btnAudios.setOnClickListener { selectMediaType(MEDIA_TYPE_AUDIO) } // [Source 19]
-        findViewById<MaterialButton>(R.id.btnPrevious).setOnClickListener {
+        btnPrevious.setOnClickListener {
             Log.d(TAG, "Previous button clicked")
             // Qui implementerai la navigazione al media precedente
             when (getCurrentMediaType()) {
@@ -244,7 +333,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 29]
-        findViewById<MaterialButton>(R.id.btnFirst).setOnClickListener {
+        btnFirst.setOnClickListener {
             Log.d(TAG, "First button clicked")
             // Qui implementerai la navigazione al primo media
             when (getCurrentMediaType()) {
@@ -285,7 +374,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 33]
-        findViewById<MaterialButton>(R.id.btnNext).setOnClickListener {
+        btnNext.setOnClickListener {
             Log.d(TAG, "Next button clicked")
             // Qui implementerai la navigazione al media successivo
             when (getCurrentMediaType()) {
@@ -324,16 +413,8 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 37]
-//        findViewById<MaterialButton>(R.id.topBar).setOnClickListener { view ->
-//            Log.d(TAG, "Menu button clicked")
-//            showPopupMenu(view)
-//        } // [Source 20]
 
-
-        topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-
-                R.id.search -> {
+        searchInputLayout.setStartIconOnClickListener {
                     val searchInput: EditText = findViewById(R.id.searchInput)
                     Log.d(TAG, "Search initiated with query: ${searchInput.text}")
                     // Qui andrebbe implementata la logica di ricerca
@@ -357,14 +438,9 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    true
-                }
-
-                else -> false
-            }
         }
 
-        findViewById<MaterialButton>(R.id.btnFw).setOnClickListener {
+        btnFw.setOnClickListener {
             Log.d(TAG, "Next button clicked")
             // Qui implementerai la navigazione al media successivo
             when (getCurrentMediaType()) {
@@ -403,7 +479,7 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 37]
-        findViewById<MaterialButton>(R.id.btnRew).setOnClickListener {
+        btnRev.setOnClickListener { //TODO DA FARE
             Log.d(TAG, "Previous button clicked")
             // Qui implementerai la navigazione al media precedente
             when (getCurrentMediaType()) {
@@ -522,10 +598,10 @@ class MainActivity : AppCompatActivity() {
             playerView.player = this@MainActivity.player
             playerView.setBackgroundColor(Color.BLACK) // Sfondo nero
             playerView.setShutterBackgroundColor(Color.BLACK) // Sfondo nero durante il buffering/inizio
-            playerView.layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
+//            playerView.layoutParams = FrameLayout.LayoutParams(
+//                FrameLayout.LayoutParams.MATCH_PARENT,
+//                FrameLayout.LayoutParams.MATCH_PARENT
+//            )
             playerView.setKeepContentOnPlayerReset(true) // opzionale
             playerView.setControllerBackgroundFromUrl(this@MainActivity, "", wrapperView)
             this@MainActivity.playerView = playerView
@@ -620,10 +696,10 @@ class MainActivity : AppCompatActivity() {
                 wrapperView
             )
 
-            playerView.layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
+//            playerView.layoutParams = FrameLayout.LayoutParams(
+//                FrameLayout.LayoutParams.MATCH_PARENT,
+//                FrameLayout.LayoutParams.MATCH_PARENT
+//            )
 
             val dataSourceFactory = DefaultHttpDataSource.Factory()
                 .setAllowCrossProtocolRedirects(true)
@@ -885,9 +961,16 @@ class MainActivity : AppCompatActivity() {
             .into(imageViewer)
     }
 
+    // Funzione di estensione per convertire Bitmap in InputStream
+// Puoi definire questa funzione fuori dal metodo setWallpaperWithScaleType, magari
+// insieme alle altre funzioni helper nella tua classe.
+    fun Bitmap.toInputStream(format: Bitmap.CompressFormat, quality: Int): InputStream {
+        val byteStream = ByteArrayOutputStream()
+        this.compress(format, quality, byteStream)
+        return ByteArrayInputStream(byteStream.toByteArray())
+    }
+
     private fun setWallpaperWithScaleType() {
-
-
         val drawable = imageViewer.drawable as BitmapDrawable
         val originalBitmap = drawable.bitmap ?: return
 
@@ -901,9 +984,49 @@ class MainActivity : AppCompatActivity() {
                 screenHeight,
                 imageViewer.scaleType
             )
-            wallpaperManager.setBitmap(transformedBitmap)
-            Toast.makeText(this@MainActivity, "Wallpaper impostato.", Toast.LENGTH_SHORT)
+
+            // --- Inizia codice per debug: Salva il bitmap ---
+            // Richiede permessi di scrittura su storage esterno se Target API < 29
+            // (ma per Target API >= 29, si usano le Scoped Storage API, il che è più complesso)
+            // Per l'emulatore, potresti provare un path semplice, ma la robustezza
+            // richiede l'uso corretto delle API di storage in base alla versione Android.
+            // Un modo più semplice per il debug rapido su emulatore (se i permessi sono gestiti):
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(downloadsDir, "wallpaper_debug_${System.currentTimeMillis()}.png")
+            FileOutputStream(file).use { out ->
+                transformedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            Log.d(TAG, "Bitmap di debug salvato in: ${file.absolutePath}")
+
+            // --- Usa setStream() anziché setBitmap() ---
+            // Ottieni un InputStream dal bitmap trasformato
+            val bitmapInputStream = transformedBitmap.toInputStream(
+                Bitmap.CompressFormat.PNG,
+                100
+            ) // Puoi provare anche JPEG con qualità diversa
+
+            // Imposta il wallpaper utilizzando setStream
+            wallpaperManager.setStream(
+                bitmapInputStream, // L'InputStream del bitmap
+                null, // rect per definire quale parte del bitmap usare (null per l'intero bitmap)
+                true // true per consentire lo scrolling del wallpaper
+            )
+
+            // Chiudi l'InputStream dopo l'uso
+            bitmapInputStream.close()
+
+            Toast.makeText(
+                this@MainActivity,
+                "Wallpaper impostato (via stream).",
+                Toast.LENGTH_SHORT
+            )
                 .show()
+
+
+//            wallpaperManager.setBitmap(transformedBitmap)
+//            Toast.makeText(this@MainActivity, "Wallpaper impostato.", Toast.LENGTH_SHORT)
+//                .show()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -985,34 +1108,17 @@ class MainActivity : AppCompatActivity() {
      */
     private fun selectMediaType(mediaType: Int) {
 
-        // Resetta lo sfondo di tutti i pulsanti
-        btnImages.setBackgroundResource(android.R.color.transparent)
-        btnVideos.setBackgroundResource(android.R.color.transparent)
-        btnAudios.setBackgroundResource(android.R.color.transparent)
-
-        // Imposta lo sfondo del pulsante selezionato
-        when (mediaType) {
-            MEDIA_TYPE_IMAGE -> {
-                btnImages.setBackgroundResource(R.color.selected_button)
-                Log.d(TAG, "Tipo media selezionato: Immagini")
-            }
-
-            MEDIA_TYPE_VIDEO -> {
-                btnVideos.setBackgroundResource(R.color.selected_button)
-                Log.d(TAG, "Tipo media selezionato: Video")
-            }
-
-            MEDIA_TYPE_AUDIO -> {
-                btnAudios.setBackgroundResource(R.color.selected_button)
-                Log.d(TAG, "Tipo media selezionato: Audio")
-            }
-        }
-        // Crea e mostra il visualizzatore appropriato
-        setupMediaLayer(mediaType)
-        invalidateOptionsMenu()
-
         // Aggiorna la variabile globale
         currentMediaType = mediaType
+
+        // Crea e mostra il visualizzatore appropriato
+        setupMediaLayer(mediaType)
+
+        // Forza la ricreazione del menu della Top App Bar
+        invalidateOptionsMenu() // Aggiungi questa riga
+
+        // La chiamata a updateResultsInfo() può rimanere qui o essere gestita altrove se preferisci
+        updateResultsInfo()
 
     }
 
@@ -1090,10 +1196,6 @@ class MainActivity : AppCompatActivity() {
                 playerView.useController = true
                 playerView.player = this@MainActivity.player
 
-                playerView.layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
                 playerView.setControllerVisibilityListener(object :
                     PlayerView.ControllerVisibilityListener {
                     override fun onVisibilityChanged(visibility: Int) {
@@ -1122,10 +1224,6 @@ class MainActivity : AppCompatActivity() {
                 playerView.useController = true
                 playerView.player = this@MainActivity.player
 
-                playerView.layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
                 playerView.setControllerVisibilityListener(object :
                     PlayerView.ControllerVisibilityListener {
                     override fun onVisibilityChanged(visibility: Int) {
@@ -1191,44 +1289,6 @@ class MainActivity : AppCompatActivity() {
             return "fit center" // Ritorna null per indicare un errore o un valore non trovato
         }
     }
-
-    /**
-     * Mostra il menu pop-up utilizzando il file XML definito in res/menu/my_menu.xml.
-     */
-    private fun showPopupMenu(anchor: View) {
-        val wrapper = ContextThemeWrapper(this, R.style.CustomPopupMenu)
-        val popup = PopupMenu(wrapper, anchor)
-        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        val themePref = sharedPref.getString("selected_theme", "light")
-        val videoPref = sharedPref.getString("selected_video", "false")
-        val currentScaleTypeIndexPref = sharedPref.getString("currentScaleTypeIndex", "3")
-
-        popup.menuInflater.inflate(R.menu.my_menu, popup.menu)
-        popup.setOnMenuItemClickListener { item ->
-            onOptionsItemSelected(item)
-        }
-
-        val label = getFormattedScaleTypeNameFromOrdinal(currentScaleTypeIndexPref?.toInt() ?: 3)
-        popup.menu.findItem(R.id.menu_item_scaleType).subMenu?.forEach { menuItem ->
-            if (label == menuItem.title) {
-                menuItem.isChecked = true
-            }
-        }
-
-        if (themePref == "dark") {
-            popup.menu.findItem(R.id.theme_dark).isChecked = true
-        } else {
-            popup.menu.findItem(R.id.theme_light).isChecked = true
-        }
-
-        if (videoPref == "true") {
-            popup.menu.findItem(R.id.fullScreen_true).isChecked = true
-        } else {
-            popup.menu.findItem(R.id.fullScreen_false).isChecked = true
-        }
-        popup.show()
-    }
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         Log.d(TAG, "Options Menu item selected: ${item.title}")
@@ -1302,14 +1362,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.fullScreen_true -> {
-                saveVideoPreference("true")
+                saveVideoPreference(getString(R.string.full_true))
                 Log.d(TAG, "Tema selezionato: Light")
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
 
             R.id.fullScreen_false -> {
-                saveVideoPreference("false")
+                saveVideoPreference(getString(R.string.full_false))
                 Log.d(TAG, "Tema selezionato: Light")
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
@@ -1317,14 +1377,14 @@ class MainActivity : AppCompatActivity() {
 
             // Gestione delle opzioni per il cambio del tema
             R.id.theme_light -> {
-                saveThemePreference("light")
+                saveThemePreference(getString(R.string.light))
                 Log.d(TAG, "Tema selezionato: Light")
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
 
             R.id.theme_dark -> {
-                saveThemePreference("dark")
+                saveThemePreference(getString(R.string.dark))
                 Log.d(TAG, "Tema selezionato: Dark")
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
@@ -1375,105 +1435,113 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Aggiorna le informazioni mostrate nella top app bar e nel TextView topInfoText
+     * in base al tipo di media e ai dati correnti.
+     */
     private fun updateResultsInfo() {
-        // Aggiorna il TextView con il numero totale di immagini e l'indice corrente (aggiungi 1 perché l'indice parte da 0)
-
-
-        when (getCurrentMediaType()) {
+        val infoTextTopBar: String = when (getCurrentMediaType()) {
             MEDIA_TYPE_IMAGE -> {
-//                val totalResults = imageViewModel.getTotal()
-//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-//                if (recordIndicator != null) {
-//                    recordIndicator.text = "$totalResults"
-//                    Log.d(TAG, recordIndicator.text.toString())
-//                }
+                val totalResults = imageViewModel.getTotal()
+                val currentIndex =
+                    imageViewModel.getCurrentIndex() + 1 // +1 perché l'indice parte da 0
+                val currentImage = imageViewModel.getCurrentItem()
 
-//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-//                if (recordIndicator2 != null) {
-//                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
-//                    Log.d(TAG, recordIndicator2.text.toString())
-//                }
+                topInfoText.text = getTopInfoText(currentMediaType, currentImage, query)
 
-//                val currentDisplayed =
-//                    if (totalResults > 0) imageViewModel.getCurrentIndex() else 1
-//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-//                if (recordIndicator3 != null) {
-//                    recordIndicator3.text = "$currentDisplayed"
-//                    Log.d(TAG, recordIndicator3.text.toString())
-//                }
-
-//                val topInfoText = findViewById<TextView>(R.id.topInfoText)
-//                if (topInfoText != null) {
-//                    topInfoText.text = imageViewModel.getCurrentItem()?.run {
-//                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
-//                    } ?: ""
-//                    Log.d(TAG, topInfoText.text.toString())
-//                }
-
+                // Restituisci la stringa per la Top App Bar (solo indice/totale)
+                if (totalResults > 0) {
+                    "Img: ${currentIndex}/${totalResults}"
+                } else if (query.isNotBlank()) {
+                    "Img: Nessun risultato per \"$query\""
+                } else {
+                    "Img: Nessun risultato"
+                }
             }
 
             MEDIA_TYPE_VIDEO -> {
-//                val totalResults = pixbayVideoService.getTotal()
-//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-//                if (recordIndicator != null) {
-//                    recordIndicator.text = "$totalResults"
-//                    Log.d(TAG, recordIndicator.text.toString())
-//                }
+                val totalResults = pixbayVideoService.getTotal()
+                val currentIndex =
+                    pixbayVideoService.getCurrentIndex() + 1 // +1 perché l'indice parte da 0
+                val currentVideo = pixbayVideoService.getCurrentItem()
 
-//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-//                if (recordIndicator2 != null) {
-//                    recordIndicator2.text = pixbayVideoService.getCurrentItem()?.id.toString()
-//                    Log.d(TAG, recordIndicator2.text.toString())
-//                }
+                topInfoText.text = getTopInfoText(currentMediaType, currentVideo, query)
 
-//                val currentDisplayed =
-//                    if (totalResults > 0) pixbayVideoService.getCurrentIndex() + 1 else 0
-//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-//                if (recordIndicator3 != null) {
-//                    recordIndicator3.text = "$currentDisplayed"
-//                    Log.d(TAG, recordIndicator3.text.toString())
-//                }
-
-//                val topInfoText = findViewById<TextView>(R.id.topInfoText)
-//                if (topInfoText != null) {
-//                    topInfoText.text = pixbayVideoService.getCurrentItem()?.run {
-//                        "By: $user - $tags - $views likes $likes ❤\uFE0F "
-//                    } ?: ""
-//                    Log.d(TAG, topInfoText.text.toString())
-//                }
+                // Restituisci la stringa per la Top App Bar (solo indice/totale)
+                if (totalResults > 0) {
+                    "Video: ${currentIndex}/${totalResults}"
+                } else if (query.isNotBlank()) {
+                    "Video: Nessun risultato per \"$query\""
+                } else {
+                    "Video: Nessun risultato"
+                }
             }
 
             MEDIA_TYPE_AUDIO -> {
                 val totalResults = radioBrowserService.getTotal()
-//                val recordIndicator = findViewById<TextView>(R.id.recordIndicator)
-//                if (recordIndicator != null) {
-//                    recordIndicator.text = "$totalResults"
-//                    Log.d(TAG, recordIndicator.text.toString())
-//                }
+                val currentIndex =
+                    radioBrowserService.getCurrentIndex() + 1 // +1 perché l'indice parte da 0
+                val currentAudio = radioBrowserService.getCurrentItem()
 
-//                val recordIndicator2 = findViewById<TextView>(R.id.recordIndicator2)
-//                if (recordIndicator2 != null) {
-//                    recordIndicator2.text = imageViewModel.getCurrentItem()?.id.toString()
-//                    Log.d(TAG, recordIndicator2.text.toString())
-//                }
+                topInfoText.text = getTopInfoText(currentMediaType, currentAudio, query)
 
-//                val recordIndicator4 = findViewById<TextView>(R.id.topInfoText)
-//                if (recordIndicator4 != null) {
-//                    recordIndicator4.text = radioBrowserService.getCurrentItem()?.name.toString()
-//                    Log.d(TAG, recordIndicator2.text.toString())
-//                }
-
-//                val currentDisplayed =
-//                    if (totalResults > 0) radioBrowserService.getCurrentIndex() + 1 else 0
-//                val recordIndicator3 = findViewById<TextView>(R.id.recordIndicator3)
-//                if (recordIndicator3 != null) {
-//                    recordIndicator3.text = "$currentDisplayed"
-//                    Log.d(TAG, recordIndicator3.text.toString())
-//                }
+                // Restituisci la stringa per la Top App Bar (solo indice/totale)
+                if (totalResults > 0) {
+                    "Radio: ${currentIndex}/${totalResults}"
+                } else if (query.isNotBlank()) {
+                    "Radio: Nessun risultato per \"$query\""
+                } else {
+                    "Radio: Nessun risultato"
+                }
             }
 
+            else -> {
+                // Caso di default o stato iniziale
+                topInfoText.text =
+                    "Seleziona un tipo di media e cerca!" // Messaggio di default per topInfoText
+                "MBI" // Titolo di default per la Top App Bar
+            }
         }
+        // Imposta il titolo della Top App Bar con la stringa creata
+        topAppBar.title = infoTextTopBar
+        Log.d(TAG, "Top AppBar Title: $infoTextTopBar")
+
+        // Imposta il sottotitolo della top bar come vuoto
+        topAppBar.subtitle = "Buddy"
+        Log.d(TAG, "Top AppBar Subtitle: ${topAppBar.subtitle}")
     }
 
+    private fun getTopInfoText(mediaType: Int, currentMedia: Any?, query: String): String {
+        return when (mediaType) {
+            MEDIA_TYPE_IMAGE -> {
+                if (currentMedia is io.github.luposolitario.mbi.model.Hit) {
+                    val currentImage = currentMedia as io.github.luposolitario.mbi.model.Hit
+                    "By: ${currentImage.user} - Tags: ${currentImage.tags} - Views: ${currentImage.views} Likes: ${currentImage.likes} ❤\uFE0F"
+                } else if (query.isNotBlank()) {
+                    "Nessun dettaglio disponibile per \"$query\""
+                } else {
+                    "Nessun dettaglio immagine"
+                }
+            }
 
+            MEDIA_TYPE_VIDEO -> {
+                if (currentMedia is io.github.luposolitario.mbi.model.Hit) {
+                    val currentVideo = currentMedia as io.github.luposolitario.mbi.model.Hit
+                    "By: ${currentVideo.user} - Tags: ${currentVideo.tags} - Views: ${currentVideo.views} Likes: ${currentVideo.likes} ❤\uFE0F"
+                } else if (query.isNotBlank()) {
+                    "Nessun dettaglio disponibile per \"$query\""
+                } else {
+                    "Nessun dettaglio video"
+                }
+            }
+
+            MEDIA_TYPE_AUDIO -> {
+                if (currentMedia is HitRadio) "Radio: ${currentMedia.name}"
+                else if (query.isNotBlank()) "Nessun dettaglio disponibile per \"$query\""
+                else "Nessun dettaglio audio"
+            }
+
+            else -> "Seleziona un tipo di media e cerca!"
+        }
+    }
 }

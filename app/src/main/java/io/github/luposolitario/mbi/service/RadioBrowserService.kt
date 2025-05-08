@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
+import kotlinx.coroutines.flow.MutableStateFlow
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -18,6 +19,7 @@ import java.util.Properties
 
 class RadioBrowserService(context: Context) : MediaService<HitRadio> {
 
+    private val prefs = context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
     private var apiKey: String
     private val baseUrl = "https://fi1.api.radio-browser.info/"
     private var currentQuery: String
@@ -34,9 +36,10 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
     init {
         val properties = Properties()
         try {
-            val inputStream = context.assets.open("api_keys.properties")
+            apiKey = MutableStateFlow(prefs.getString("pixabay_api_key", "") ?: "").value
+
+            val inputStream = context.assets.open("pixbay.properties")
             properties.load(inputStream)
-            apiKey = properties.getProperty("pixabay_api_key") ?: ""
             currentQuery = properties.getProperty("pixabay_query") ?: ""
             perPage = properties.getProperty("pixabay_per_page")?.toIntOrNull() ?: 200
             inputStream.close()

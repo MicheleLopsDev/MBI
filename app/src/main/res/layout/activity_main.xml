@@ -17,8 +17,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        material:menu="@menu/my_menu"
         material:title="MBI"
+        tools:menu="@menu/my_menu"
         material:titleTextAppearance="?attr/textAppearanceHeadlineSmall" />
 
     <!-- Additional Info -->
@@ -45,47 +45,45 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Type Selector Buttons -->
-    <LinearLayout
-        android:id="@+id/typeSelector"
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/typeSelectorToggleGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topInfoCard">
+        app:layout_constraintTop_toBottomOf="@id/topInfoCard"
+        app:selectionRequired="true"
+        app:singleSelection="true">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnImages"
-            style="?attr/materialIconButtonStyle"
+            style="@style/Widget.Material3.Button.OutlinedButton.Icon"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:contentDescription="@string/immagine"
-            material:icon="@drawable/ic_menu_gallery"
-            material:iconGravity="textStart" />
+            app:icon="@drawable/ic_menu_gallery" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnVideos"
-            style="?attr/materialIconButtonStyle"
+            style="@style/Widget.Material3.Button.OutlinedButton.Icon"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:contentDescription="@string/video"
-            material:icon="@drawable/ic_video"
-            material:iconGravity="textStart" />
+            app:icon="@drawable/ic_video" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAudios"
-            style="?attr/materialIconButtonStyle"
+            style="@style/Widget.Material3.Button.OutlinedButton.Icon"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:contentDescription="@string/audio"
-            material:icon="@drawable/ic_audio"
-            material:iconGravity="textStart" />
+            app:icon="@drawable/ic_audio" />
 
-    </LinearLayout>
+    </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- Search Bar -->
     <com.google.android.material.textfield.TextInputLayout
@@ -96,7 +94,7 @@
         app:boxStrokeColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/typeSelector"
+        app:layout_constraintTop_toBottomOf="@id/typeSelectorToggleGroup"
         app:startIconContentDescription="@string/cerca"
         app:startIconDrawable="@drawable/ic_search">
 
@@ -105,7 +103,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/cerca_hint"
-            android:inputType="text" />
+            android:inputType="text"
+            android:textAlignment="center" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

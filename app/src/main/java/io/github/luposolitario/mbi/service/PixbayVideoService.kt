@@ -41,7 +41,7 @@ class PixbayVideoService(context: Context) : MediaService<Hit> {
             perPage = properties.getProperty("pixabay_per_page")?.toIntOrNull() ?: 200
             inputStream.close()
         } catch (e: Exception) {
-            Log.e("VideoService", "Errore caricamento properties: ${e.message}")
+            Log.e("ImageService", "Errore nel caricamento del file di properties: ${e.message}")
             apiKey = ""
             currentQuery = ""
             perPage = 200

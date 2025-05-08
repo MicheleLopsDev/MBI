@@ -42,10 +42,5 @@
         <activity
             android:name=".util.SettingsActivity"
             android:exported="false" />
-
-        <service
-            android:name=".RadioPlayerService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
     </application>
 </manifest>

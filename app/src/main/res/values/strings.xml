@@ -41,4 +41,11 @@
     <string name="radio_icon">radio</string>
     <string name="cerca_hint">Cerca</string>
     <string name="search">cerca</string>
+    <string name="settings_title">Chiave pixbay</string>
+    <string name="back_button_desc">Indietro</string>
+    <string name="pixabay_key_label">Chiave</string>
+    <string name="pixabay_key_explanation">"Per ottenere una chiave API, visita il sito di Pixabay, registrati e richiedi la chiave.",</string>
+    <string name="api_key_input_label">chiave</string>
+    <string name="close_button">chiudi</string>
+    <string name="save_button">salva</string>
 </resources>

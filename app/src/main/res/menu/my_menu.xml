@@ -2,12 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/search"
-        android:icon="@drawable/ic_search"
-        android:title="@string/search"
-        app:showAsAction="ifRoom" />
-
     <!-- Voce menu: Settings con due sottomenu -->
     <item
         android:id="@+id/menu_item_settings"
@@ -86,25 +80,26 @@
                         android:title="@string/full_false" />
                 </menu>
             </item>
+            <!-- Altre voci del menu -->
+            <item
+                android:id="@+id/menu_item_about"
+                android:icon="@android:drawable/ic_menu_info_details"
+                android:title="@string/about"
+                app:showAsAction="ifRoom" />
+
+            <item
+                android:id="@+id/menu_item_help"
+                android:icon="@android:drawable/ic_menu_help"
+                android:title="@string/help"
+                app:showAsAction="ifRoom" />
+
+            <item
+                android:id="@+id/menu_item_exit"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="@string/exit"
+                app:showAsAction="never" />
         </menu>
     </item>
 
-    <!-- Altre voci del menu -->
-    <item
-        android:id="@+id/menu_item_about"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="@string/about"
-        app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/menu_item_help"
-        android:icon="@android:drawable/ic_menu_help"
-        android:title="@string/help"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/menu_item_exit"
-        android:icon="@android:drawable/ic_lock_power_off"
-        android:title="@string/exit"
-        app:showAsAction="never" />
 </menu>
