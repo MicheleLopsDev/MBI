@@ -21,6 +21,9 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
+import io.github.luposolitario.mbi.model.AppDatabase
+import io.github.luposolitario.mbi.model.RadioStation
+import io.github.luposolitario.mbi.model.RadioStationDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,6 +36,8 @@ class RadioPlayerService : Service() {
     private var name: String? = null
     private var icon: String? = null
     private var radioUrl: String? = null
+    private lateinit var stationDao: RadioStationDao
+    private val serviceScope = CoroutineScope(Dispatchers.IO)
 
     companion object {
         const val ACTION_START = "ACTION_START_RADIO"
@@ -48,6 +53,7 @@ class RadioPlayerService : Service() {
     override fun onCreate() {
         super.onCreate()
         ensureChannel()
+        stationDao = AppDatabase.getInstance(this).radioStationDao()
         isRunning = true
     }
 
@@ -64,6 +70,17 @@ class RadioPlayerService : Service() {
     inner class LocalBinder : Binder() {
         fun getService(): RadioPlayerService = this@RadioPlayerService
     }
+
+
+    // Chiamala quando vuoi salvare una stazione
+    fun saveCurrentStation(name: String?, icon: String?, url: String?) {
+        serviceScope.launch {
+            val station = RadioStation(name = name, icon = icon, radioUrl = url)
+            val id = stationDao.insertOrIgnore(station)
+            Log.d("RadioPlayerService", "Salvata stazione con ID: $id")
+        }
+    }
+
 
     fun startRadioPlayer(name: String?, icon: String?, radioUrl: String?, player: ExoPlayer) {
         if (radioUrl.isNullOrBlank()) return
@@ -211,8 +228,8 @@ class RadioPlayerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         name = intent?.getStringExtra("name") ?: "Radio"
-        icon = intent?.getStringExtra("icon")
-        radioUrl = intent?.getStringExtra("url")
+        icon = intent?.getStringExtra("icon") ?: ""
+        radioUrl = intent?.getStringExtra("url") ?: ""
 
         when (intent?.action) {
             ACTION_START -> {
@@ -224,6 +241,7 @@ class RadioPlayerService : Service() {
                 }
 
                 if (!radioUrl.isNullOrBlank()) {
+                    saveCurrentStation(name, icon, radioUrl)
                     startRadioPlayer(name, icon, radioUrl, player)
                 }
             }

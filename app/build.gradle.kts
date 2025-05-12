@@ -47,14 +47,21 @@ android {
 
     buildFeatures {
         compose = true          // <‑‑ abilita Compose
+        buildConfig = true // Aggiungi questa riga per Kotlin DSL
     }
 
 }
+
+
+
+
 
 dependencies {
     // Networking
     val retrofitVersion = "2.9.0"
     val okhttpVersion = "4.11.0"
+    val roomVersion = "2.5.1"
+
     implementation("net.openid:appauth:0.7.1") {
         exclude(group = "com.android.support")
     }
@@ -129,5 +136,12 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-core:1.6.7") // Usa l'ultima versione stabile compatibile con la tua versione di Compose UI
     implementation("androidx.compose.material:material-icons-extended:1.6.7") // Usa l'ultima versione stabile compatibile con la tua versione di Compose UI
+
+    // Room runtime & coroutines
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+
+    // Compiler via KSP
+    ksp("androidx.room:room-compiler:$roomVersion")
 
 }
