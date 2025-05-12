@@ -224,11 +224,11 @@ class MainActivity : AppCompatActivity() {
                 true
             ) // Se hai un gruppo per scale types
 
-            val label =
-                getFormattedScaleTypeNameFromOrdinal(currentScaleTypeIndexPref?.toInt() ?: 3)
+//            val label =
+//                getFormattedScaleTypeNameFromOrdinal(currentScaleTypeIndexPref?.toInt() ?: 3)
 
             scaleTypeMenuItem?.subMenu?.forEach({ menuItem ->
-                if (label == menuItem.title) {
+                if (currentScaleTypeIndexPref?.toInt() == menuItem.itemId) {
                     menuItem.isChecked = true
                 }
             })
@@ -1308,7 +1308,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_centerCrop -> {
                 imageViewer.scaleType = ImageView.ScaleType.CENTER_CROP
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: CENTER_CROP")
                 return true
             }
@@ -1316,7 +1317,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_fitCenter -> {
                 imageViewer.scaleType = ImageView.ScaleType.FIT_CENTER
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: FIT_CENTER")
                 return true
             }
@@ -1324,7 +1326,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_centerInside -> {
                 imageViewer.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: CENTER_INSIDE")
                 return true
             }
@@ -1332,7 +1335,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_fitXY -> {
                 imageViewer.scaleType = ImageView.ScaleType.FIT_XY
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: FIT_XY")
                 return true
             }
@@ -1340,7 +1344,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_center -> {
                 imageViewer.scaleType = ImageView.ScaleType.CENTER
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: CENTER")
                 return true
             }
@@ -1348,7 +1353,8 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_fitStart -> {
                 imageViewer.scaleType = ImageView.ScaleType.FIT_START
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: FIT_START")
                 return true
             }
@@ -1356,21 +1362,24 @@ class MainActivity : AppCompatActivity() {
             R.id.scaleType_fitEnd -> {
                 imageViewer.scaleType = ImageView.ScaleType.FIT_END
                 currentScaleTypeIndex = imageViewer.scaleType.ordinal
-                saveScalePreference(currentScaleTypeIndex.toString())
+                saveScalePreference(item.itemId.toString())
+                invalidateOptionsMenu()
                 Log.d(TAG, "ScaleType selezionato: FIT_END")
                 return true
             }
 
             R.id.fullScreen_true -> {
                 saveVideoPreference(getString(R.string.full_true))
-                Log.d(TAG, "Tema selezionato: Light")
+                Log.d(TAG, "Fullscreen non selezionato")
+                invalidateOptionsMenu()
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
 
             R.id.fullScreen_false -> {
                 saveVideoPreference(getString(R.string.full_false))
-                Log.d(TAG, "Tema selezionato: Light")
+                Log.d(TAG, "Fullscreen non selezionato")
+                invalidateOptionsMenu()
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
@@ -1379,6 +1388,7 @@ class MainActivity : AppCompatActivity() {
             R.id.theme_light -> {
                 saveThemePreference(getString(R.string.light))
                 Log.d(TAG, "Tema selezionato: Light")
+                invalidateOptionsMenu()
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
@@ -1386,6 +1396,7 @@ class MainActivity : AppCompatActivity() {
             R.id.theme_dark -> {
                 saveThemePreference(getString(R.string.dark))
                 Log.d(TAG, "Tema selezionato: Dark")
+                invalidateOptionsMenu()
                 recreate() // Ricrea l'Activity per applicare il nuovo tema
                 return true
             }
