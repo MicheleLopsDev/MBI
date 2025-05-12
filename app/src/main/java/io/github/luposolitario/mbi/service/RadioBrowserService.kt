@@ -25,13 +25,10 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
     private var currentQuery: String
     private var currentIndex = -1
 
-    //    private var currentPage = 1
     private var perPage: Int
     private val radioService: RadioInterfaceService
     private var radioList: LinkedList<HitRadio> = LinkedList()
     private val radioContext = context
-//    private var total = 0
-//    private var totalHits = 0
 
     init {
         val properties = Properties()
@@ -84,17 +81,6 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
         TODO("Not yet implemented")
     }
 
-//    fun loadInitialMedia(callback: (List<HitRadio>?) -> Unit) {
-//        searchMedia(callback = callback)
-//    }
-
-//    private fun <T> mergeConcatenando(list1: LinkedList<T>, list2: LinkedList<T>): LinkedList<T> {
-//        return LinkedList<T>().apply {
-//            addAll(list1)
-//            addAll(list2)
-//        }
-//    }
-
     override suspend fun moveNext(offset: Int, onMediaChanged: (HitRadio?) -> Unit) {
         if (radioList.isEmpty()) {
             onMediaChanged(null)
@@ -126,33 +112,6 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
             onMediaChanged(null)
         }
     }
-
-//    override fun searchMedia(query: String?, callback: (List<HitRadio>?) -> Unit) {
-//        val countryCode = "IT" // fisso per ora
-//        radioService.searchStations(countryCode, query).enqueue(object : Callback<List<HitRadio>> {
-//            override fun onResponse(
-//                call: Call<List<HitRadio>>,
-//                response: Response<List<HitRadio>>
-//            ) {
-//                if (response.isSuccessful) {
-//                    radioList.clear()
-//                    radioList.addAll(response.body() ?: emptyList())
-//                    currentIndex = if (radioList.isNotEmpty()) 0 else -1
-//                    callback(radioList)
-//                } else {
-//                    Log.e("RadioService", "Errore API: ${response.code()} - ${response.message()}")
-//                    loadFallbackStations(context: Context)
-//                    callback(null)
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<List<HitRadio>>, t: Throwable) {
-//                Log.e("RadioService", "Errore di rete: ${t.message}")
-//                callback(null)
-//            }
-//        })
-//    }
-
 
     fun loadFallbackStations(name: String?, context: Context): List<HitRadio>? {
         return try {
