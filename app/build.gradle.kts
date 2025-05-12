@@ -5,6 +5,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     kotlin("plugin.parcelize") // 👈 AGGIUNGI QUESTO
+
 }
 
 android {
@@ -13,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.luposolitario.mbi"
-        minSdk = 35
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -143,5 +144,7 @@ dependencies {
 
     // Compiler via KSP
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    implementation("com.google.code.gson:gson:2.10.1") // Aggiungi questa riga
 
 }

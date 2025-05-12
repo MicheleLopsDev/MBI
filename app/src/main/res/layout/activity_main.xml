@@ -41,7 +41,6 @@
             android:text="Informazioni aggiuntive"
             android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceBodyMedium" />
-
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Type Selector Buttons -->
@@ -85,6 +84,28 @@
 
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <!-- Country Spinner (Material 3 exposed dropdown) -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/countrySelectorLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/typeSelectorToggleGroup"
+        app:endIconMode="dropdown_menu">
+
+        <!-- activity_main.xml  – unica modifica -->
+        <AutoCompleteTextView
+            android:id="@+id/countrySelector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/select_country"
+            android:inputType="text"
+            android:imeOptions="actionDone" />    <!-- (opz.) chiude la tastiera -->
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <!-- Search Bar -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/searchInputLayout"
@@ -94,7 +115,7 @@
         app:boxStrokeColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/typeSelectorToggleGroup"
+        app:layout_constraintTop_toBottomOf="@id/countrySelectorLayout"
         app:startIconContentDescription="@string/cerca"
         app:startIconDrawable="@drawable/ic_search">
 

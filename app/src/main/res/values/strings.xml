@@ -48,4 +48,5 @@
     <string name="api_key_input_label">chiave</string>
     <string name="close_button">chiudi</string>
     <string name="save_button">salva</string>
+    <string name="select_country">Nazione</string>
 </resources>

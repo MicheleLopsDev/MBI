@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -80,6 +81,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import javax.inject.Inject
+import android.widget.AutoCompleteTextView
+import android.widget.ArrayAdapter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import io.github.luposolitario.mbi.model.Country
+
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -93,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         const val MEDIA_TYPE_VIDEO = 1
         const val MEDIA_TYPE_AUDIO = 2
         const val MIN_RADIO_STATIONS = 10
+        const val PREF_SELECTED_COUNTRY = "selected_country_code"
 
     }
 
@@ -112,7 +120,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnFw: MaterialButton
     private lateinit var btnRev: MaterialButton
     private lateinit var topInfoText: TextView
-
+    private lateinit var countrySelector: AutoCompleteTextView
+    private lateinit var countrySelectorLayout: TextInputLayout
 
     // Riferimenti ai visualizzatori di media
     private lateinit var playerContainer: MaterialCardView
@@ -123,6 +132,9 @@ class MainActivity : AppCompatActivity() {
 
     private val job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
+    private var countryChanged = false            //  true quando l’utente cambia Paese
+    private lateinit var sharedPref: SharedPreferences //  reference alle SharedPreferences
+    private lateinit var countries: List<Country>     // lista completa da tenere in memoria
 
     private var isFullScreen = false
     private var query = ""
@@ -154,7 +166,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // --- Setup Tema e ViewModel ---
-        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE) // [Source 7]
+        sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE) // [Source 7]
         val themePref = sharedPref.getString("selected_theme", "light")
         if (!themePref.equals("dark")) {
             setTheme(R.style.Theme_MBI)
@@ -222,8 +234,11 @@ class MainActivity : AppCompatActivity() {
         // --- IMPOSTA LA TOOLBAR COME ACTION BAR DELL'ACTIVITY ---
         setSupportActionBar(topAppBar) // <--- AGGIUNGI QUESTA RIGA
 
+        setupCountrySpinner()
+
         // --- 2. Configura i listener che devono essere sempre attivi ---
         setupListeners(savedInstanceState) // Imposta onClickListeners per bottoni, menu, search
+
 
         // --- 3. Imposta lo stato iniziale ---
         Log.d(TAG, "onCreate: Setting up initial state.")
@@ -232,15 +247,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private suspend fun fetchAndSaveRadioStations() {
+    private fun fetchAndSaveRadioStations() {
         //CoroutineScope(Dispatchers.IO).launch {
         try {
-            radioBrowserService.searchMedia("") { apiResponse ->
+            radioBrowserService.searchMedia("", "") { apiResponse ->
                 CoroutineScope(Dispatchers.IO).launch { // Launch another coroutine to handle DB operation
                     apiResponse?.forEach { hit ->
                         if (hit is HitRadio) {
                             val radioStation = RadioStation(hit)
-                            radioStationDao.insertAll(listOf(radioStation))
+                            radioStationDao.insertOrIgnore(radioStation)
                         }
                     }
                     withContext(Dispatchers.Main) {
@@ -352,7 +367,108 @@ class MainActivity : AppCompatActivity() {
         btnFw = findViewById(R.id.btnFw)
         btnRev = findViewById<MaterialButton>(R.id.btnRew)
         topInfoText = findViewById(R.id.topInfoText)
+        countrySelector = findViewById(R.id.countrySelector)  // subito dopo gli altri findViewById
+        countrySelectorLayout = findViewById(R.id.countrySelectorLayout)
     }
+
+    // ---- LEGGE IL JSON DAGLI assets ----
+    private fun loadCountriesFromAssets(): List<Country> {
+        return try {
+            val jsonString = assets.open("country.json")
+                .bufferedReader()
+                .use { it.readText() }
+            val listType = object : TypeToken<List<Country>>() {}.type
+            Gson().fromJson(jsonString, listType)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    /**
+     * Restituisce il country‑code (es. "IT") a partire dal testo mostrato
+     * nell’AutoCompleteTextView countrySelector.
+     * Se il testo non corrisponde a nessun Paese noto, torna null.
+     */
+    private fun getSelectedCountryCode(): String? {
+        val currentText = countrySelector.text?.toString()?.trim() ?: return null
+
+        // 1) Estrai la parte prima dei due punti (es. "Italia" da "Italia: (42)")
+        val countryName = currentText.substringBefore(':').trim()
+
+        // 2) Cerca nella lista caricata in precedenza
+        return countries.firstOrNull { it.name.equals(countryName, ignoreCase = true) }?.code
+    }
+
+
+    private fun setupCountrySpinner() {
+
+        countries = loadCountriesFromAssets()
+
+        // Entry formattate "Nome: (xx)"
+        val entries = countries.map { "${it.name}: (${it.stationCount})" }
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, entries)
+        countrySelector.setAdapter(adapter)
+
+        /* ---------- DEFAULT: leggiamo quello salvato o Italia ---------- */
+        val savedCode = sharedPref.getString(PREF_SELECTED_COUNTRY, "IT") ?: "IT"
+        val defaultIdx = countries.indexOfFirst { it.code.equals(savedCode, true) }
+            .takeIf { it >= 0 }          // ‑1 → null
+            ?: countries.indexOfFirst {  // se non c’è, ripieghiamo su Italia
+                it.code.equals("IT", true) || it.name.equals("Italia", true)
+            }
+
+        countrySelector.post {
+            countrySelector.setText(entries[defaultIdx], /*filter=*/false)
+        }
+        /* ---------------------------------------------------------------- */
+
+        /* --- Pulisci al primo tap --- */
+        var firstUserEdit = true
+        countrySelector.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && firstUserEdit) {
+                firstUserEdit = false
+                countrySelector.text?.clear()
+                countrySelector.showDropDown()
+            } else if (!hasFocus) {          // uscita dal campo → valida
+                validateCountry(entries, countries, defaultIdx)
+            }
+        }
+
+        /* --- Click su un elemento --- */
+        countrySelector.setOnItemClickListener { _, _, position, _ ->
+            saveCountryIfChanged(countries[position])
+        }
+    }
+
+    /* ---------- FUNZIONI DI SUPPORTO ---------- */
+
+    private fun saveCountryIfChanged(newCountry: Country) {
+        val oldCode = sharedPref.getString(PREF_SELECTED_COUNTRY, "IT")
+        if (!newCountry.code.equals(oldCode, true)) {
+            sharedPref.edit().putString(PREF_SELECTED_COUNTRY, newCountry.code).apply()
+            countryChanged =
+                true                   //  ora chi usa l’audio sa che deve rifare la query
+            Log.d(TAG, "Country cambiato in ${newCountry.code}")
+        }
+    }
+
+    private fun validateCountry(
+        entries: List<String>,
+        countries: List<Country>,
+        defaultIdx: Int
+    ) {
+        val txt = countrySelector.text?.toString() ?: ""
+        val idx = entries.indexOf(txt)
+        if (idx == -1) {                     // testo libero NON valido → torna al default
+            countrySelector.setText(entries[defaultIdx], /*filter=*/false)
+            saveCountryIfChanged(countries[defaultIdx])
+        } else {
+            saveCountryIfChanged(countries[idx])
+        }
+    }
+
 
     // Funzione per impostare i listener
     private fun setupListeners(savedInstanceState: Bundle?) {
@@ -503,7 +619,7 @@ class MainActivity : AppCompatActivity() {
                                     radioStationDao.searchByName(query)
                                 }
 
-                                if (stationsFromDb.isNotEmpty()) {
+                                if (stationsFromDb.isNotEmpty() && !countryChanged) {
                                     // 2. Se trovati risultati nel DB, usali
                                     Log.d(
                                         TAG,
@@ -522,7 +638,12 @@ class MainActivity : AppCompatActivity() {
                                         TAG,
                                         "Nessuna stazione trovata nel DB, cerco sul servizio per la query: $query"
                                     )
-                                    radioBrowserService.searchMedia(query) { apiResponse ->
+                                    val code = getSelectedCountryCode()
+                                        ?: "IT"   // fallback su Italia se null
+                                    radioBrowserService.searchMedia(
+                                        query,
+                                        countryCode = code
+                                    ) { apiResponse ->
                                         // Gestisci la risposta dal servizio di rete
                                         handleRadioResponse(apiResponse)
                                         // Opzionale: Salva i risultati trovati online nel DB per future ricerche
@@ -539,7 +660,7 @@ class MainActivity : AppCompatActivity() {
                                 }
                                 // Aggiorna l'UI principale (potrebbe essere chiamata anche dentro i callback
                                 // se vuoi aggiornare l'UI solo quando i dati sono pronti)
-                                updateResultsInfo()
+                                //updateResultsInfo()
                             }
                         }
                     }
@@ -647,7 +768,7 @@ class MainActivity : AppCompatActivity() {
                                 radioStationDao.searchByName(query)
                             }
 
-                            if (stationsFromDb.isNotEmpty()) {
+                            if (stationsFromDb.isNotEmpty() && !countryChanged) {
                                 // 2. Se trovati risultati nel DB, usali
                                 Log.d(
                                     TAG,
@@ -664,7 +785,12 @@ class MainActivity : AppCompatActivity() {
                                     TAG,
                                     "Nessuna stazione trovata nel DB, cerco sul servizio per la query: $query"
                                 )
-                                radioBrowserService.searchMedia(query) { apiResponse ->
+                                val code =
+                                    getSelectedCountryCode() ?: "IT"   // fallback su Italia se null
+                                radioBrowserService.searchMedia(
+                                    query,
+                                    countryCode = code
+                                ) { apiResponse ->
                                     // Gestisci la risposta dal servizio di rete
                                     handleRadioResponse(apiResponse)
                                     // Opzionale: Salva i risultati trovati online nel DB per future ricerche
@@ -673,15 +799,16 @@ class MainActivity : AppCompatActivity() {
                                             if (hit is HitRadio) {
                                                 val radioStation =
                                                     RadioStation(hit) // Usa il costruttore che prende HitRadio
-                                                radioStationDao.insertAll(listOf(radioStation)) // Usa insertAll per aggiungere/sostituire
+                                                radioStationDao.insertOrIgnore(radioStation)
                                             }
                                         }
+
                                     }
                                 }
                             }
                             // Aggiorna l'UI principale (potrebbe essere chiamata anche dentro i callback
                             // se vuoi aggiornare l'UI solo quando i dati sono pronti)
-                            updateResultsInfo()
+                            //updateResultsInfo()
                         }
                     }
                 }
@@ -1077,7 +1204,7 @@ class MainActivity : AppCompatActivity() {
             currentRadio = null // **Imposta currentRadio a null se non ci sono risultati**
         }
         // Chiama updateResultsInfo() dopo che currentRadio è stato aggiornato
-        //updateResultsInfo()
+        updateResultsInfo()
     }
 
     private fun loadImageWithGlide(imageUrl: String?) {
@@ -1242,6 +1369,10 @@ class MainActivity : AppCompatActivity() {
         // Forza la ricreazione del menu della Top App Bar
         invalidateOptionsMenu() // Aggiungi questa riga
 
+        // Mostra il filtro Paese solo per l’audio
+        countrySelectorLayout.visibility =
+            if (mediaType == MEDIA_TYPE_AUDIO) View.VISIBLE else View.GONE
+
         // La chiamata a updateResultsInfo() può rimanere qui o essere gestita altrove se preferisci
         updateResultsInfo()
 
@@ -1260,6 +1391,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         releasePlayer()
+        radioBrowserService.cancelJobs()   // libera le coroutine, non serve onDestroy interno
     }
 
     private fun releasePlayer() {

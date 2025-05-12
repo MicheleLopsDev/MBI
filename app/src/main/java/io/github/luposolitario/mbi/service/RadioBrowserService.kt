@@ -3,8 +3,10 @@ package io.github.luposolitario.mbi.service
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.*
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.google.gson.reflect.TypeToken      //  aggiungi se manca
+import com.google.gson.stream.JsonReader      //  assicurati che sia *questo* import
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.InputStreamReader
 import java.util.LinkedList
 import java.util.Properties
 import javax.inject.Inject
@@ -26,7 +29,7 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
 
     private val prefs = context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
     private var apiKey: String
-    private val baseUrl = "https://fi1.api.radio-browser.info/"
+    private val baseUrl = "https://xx.api.radio-browser.info/"
     private var currentQuery: String
     private var currentIndex = -1
 
@@ -34,6 +37,10 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
     private val radioService: RadioInterfaceService
     private var radioList: LinkedList<HitRadio> = LinkedList()
     private val radioContext = context
+
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val hitRadioType = object : TypeToken<HitRadio>() {}.type
+
 
     init {
         val properties = Properties()
@@ -122,22 +129,7 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
         }
     }
 
-    fun loadFallbackStations(name: String?, context: Context): List<HitRadio>? {
-        return try {
-            val inputStream = context.assets.open("fallback_stations.json")
-            val json = inputStream.bufferedReader().use { it.readText() }
-            val type = object : TypeToken<List<HitRadio>>() {}.type
-            val fullList = Gson().fromJson<List<HitRadio>>(json, type)
-
-            // Applica filtro
-            fullList.filter { hit ->
-                hit.name.contains(name.toString(), ignoreCase = true)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
+    fun cancelJobs() = ioScope.cancel()    // chiamalo dall’Activity se serve
 
     fun setradioList(_list: List<HitRadio>) {
         radioList.clear()
@@ -145,8 +137,11 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
         currentIndex = 0
     }
 
-    fun searchMedia(query: String = "", callback: (List<HitRadio>?) -> Unit) {
-        val countryCode = "IT"
+    fun searchMedia(
+        query: String = "",
+        countryCode: String = "IT",
+        callback: (List<HitRadio>?) -> Unit
+    ) {
         radioService.searchStations(countryCode, query).enqueue(object : Callback<List<HitRadio>> {
             override fun onResponse(
                 call: Call<List<HitRadio>>,
@@ -160,24 +155,51 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
                     callback(result)
                 } else {
                     Log.e("RadioService", "Errore API: ${response.code()}")
-                    fallback(query)
+                    fallback(query, countryCode)
                 }
             }
 
             override fun onFailure(call: Call<List<HitRadio>>, t: Throwable) {
                 Log.e("RadioService", "Errore di rete: ${t.message}")
-                fallback(query)
+                fallback(query, countryCode)
             }
 
-            fun fallback(name: String?) {
-                val fallbackList = loadFallbackStations(name, radioContext)
-                if (!fallbackList.isNullOrEmpty()) {
-                    radioList.clear()
-                    radioList.addAll(fallbackList)
-                    currentIndex = if (radioList.isNotEmpty()) 0 else -1
-                    callback(fallbackList)
-                } else {
-                    callback(null)
+            private suspend fun loadFallbackStations(
+                name: String?
+            ): List<HitRadio> = withContext(Dispatchers.IO) {
+                val query = name.orEmpty().trim().lowercase()
+                var cc = if (countryCode.isBlank()) "IT" else countryCode
+
+                radioContext.assets.open(cc + ".json").use { input ->
+                    JsonReader(InputStreamReader(input)).use { reader ->
+                        val gson = Gson()
+                        val list = mutableListOf<HitRadio>()
+                        reader.beginArray()
+                        while (reader.hasNext()) {
+                            val hit: HitRadio = gson.fromJson(reader, hitRadioType)
+                            if (hit.name.contains(query, true)) list.add(hit)
+                        }
+                        reader.endArray()
+                        list
+                    }
+                }
+            }
+
+
+            /** Lettura‑streaming del JSON – va sempre chiamato su Dispatchers.IO */
+            fun fallback(name: String?, countryCode1: String) {
+                ioScope.launch {
+                    val list = loadFallbackStations(name)
+                    withContext(Dispatchers.Main) {
+                        if (list.isNotEmpty()) {
+                            radioList.clear()
+                            radioList.addAll(list)
+                            currentIndex = if (radioList.isNotEmpty()) 0 else -1
+                            callback(list)          // stesso callback passato a searchMedia
+                        } else {
+                            callback(null)
+                        }
+                    }
                 }
             }
         })
