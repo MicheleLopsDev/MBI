@@ -61,6 +61,9 @@ import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
+import io.github.luposolitario.mbi.model.RadioStation
+import io.github.luposolitario.mbi.model.RadioStationDao
+import io.github.luposolitario.mbi.model.toHitRadio
 import io.github.luposolitario.mbi.service.PixbayImageService
 import io.github.luposolitario.mbi.service.PixbayVideoService
 import io.github.luposolitario.mbi.service.RadioBrowserService
@@ -70,6 +73,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -88,6 +92,7 @@ class MainActivity : AppCompatActivity() {
         const val MEDIA_TYPE_IMAGE = 0
         const val MEDIA_TYPE_VIDEO = 1
         const val MEDIA_TYPE_AUDIO = 2
+        const val MIN_RADIO_STATIONS = 10
 
     }
 
@@ -126,7 +131,12 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var pixbayImageService: PixbayImageService
     private lateinit var pixbayVideoService: PixbayVideoService
-    private lateinit var radioBrowserService: RadioBrowserService
+
+    @Inject
+    lateinit var radioBrowserService: RadioBrowserService
+
+    @Inject
+    lateinit var radioStationDao: RadioStationDao //  Inject the DAO via Hilt
     private var currentMedia: Hit? = null
     private var currentRadio: HitRadio? = null
 
@@ -178,6 +188,34 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+// --- Inizializzazione DB ---
+        // Lancia la coroutine sul dispatcher IO per il controllo iniziale del DB
+        CoroutineScope(Dispatchers.IO).launch { // <-- CORREZIONE: Usa Dispatchers.IO
+            try {
+                // Ora questa chiamata viene eseguita su un thread in background
+                val needsFetching = radioStationDao.getRadioStationCount() < MIN_RADIO_STATIONS
+
+                // Le funzioni chiamate qui (fetchAndSaveRadioStations e loadRadioStationsFromDb)
+                // sono 'suspend' e gestiscono già il cambio di contesto se necessario
+                // per aggiornare la UI sul Main thread.
+                if (needsFetching) {
+                    Log.d(TAG, "Numero stazioni radio basso, recupero dalla rete...")
+                    fetchAndSaveRadioStations()
+                } else {
+                    Log.d(TAG, "Caricamento stazioni radio dal DB...")
+                    loadRadioStationsFromDb()
+                }
+            } catch (e: Exception) {
+                // È buona norma gestire potenziali eccezioni qui
+                Log.e(TAG, "Errore durante l'inizializzazione del DB: ${e.message}", e)
+                // Potresti voler mostrare un messaggio all'utente qui,
+                // ma ricorda di farlo tornando sul Main thread:
+                // withContext(Dispatchers.Main) {
+                //    Toast.makeText(this@MainActivity, "Errore caricamento dati", Toast.LENGTH_LONG).show()
+                // }
+            }
+        }
+
         // --- 1. Inizializza SEMPRE le view principali ---
         initializeCoreViews() // Prende riferimenti a mediaViewer, bottoni, searchInput
 
@@ -193,6 +231,37 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+    private suspend fun fetchAndSaveRadioStations() {
+        //CoroutineScope(Dispatchers.IO).launch {
+        try {
+            radioBrowserService.searchMedia("") { apiResponse ->
+                CoroutineScope(Dispatchers.IO).launch { // Launch another coroutine to handle DB operation
+                    apiResponse?.forEach { hit ->
+                        if (hit is HitRadio) {
+                            val radioStation = RadioStation(hit)
+                            radioStationDao.insertAll(listOf(radioStation))
+                        }
+                    }
+                    withContext(Dispatchers.Main) {
+                        loadRadioStationsFromDb()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching/saving radio stations: ${e.message}")
+            //  Handle error (e.g., show a message, load fallback data)
+        }
+        //}
+    }
+
+    private suspend fun loadRadioStationsFromDb() {
+        val stations = radioStationDao.getAllRadioStations()
+        withContext(Dispatchers.Main) {
+            //  Update UI with stations from DB (e.g., populate a RecyclerView)
+            Log.d(TAG, "Loaded ${stations.size} stations from DB")
+        }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         // Gonfia il menu; questo aggiunge voci alla action bar se è presente.
@@ -426,8 +495,50 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         MEDIA_TYPE_AUDIO -> {
-                            radioBrowserService.searchMedia(query) { apiResponse ->
-                                handleRadioResponse(apiResponse)
+                            // Lanciamo una coroutine per eseguire l'operazione di DB e rete in background
+                            uiScope.launch {
+                                // 1. Ricerca nel database usando il metodo esistente searchByName
+                                val stationsFromDb = withContext(Dispatchers.IO) {
+                                    // Esegui la ricerca nel DB in un thread di background (Dispatchers.IO)
+                                    radioStationDao.searchByName(query)
+                                }
+
+                                if (stationsFromDb.isNotEmpty()) {
+                                    // 2. Se trovati risultati nel DB, usali
+                                    Log.d(
+                                        TAG,
+                                        "Trovate ${stationsFromDb.size} stazioni nel DB per la query: $query"
+                                    )
+                                    // Converti la lista di RadioStation in List<HitRadio> usando l'extension function esistente
+                                    val hitRadioListFromDb = stationsFromDb.map { it.toHitRadio() }
+                                    handleRadioResponse(hitRadioListFromDb)
+                                    radioBrowserService.setQuery(query)
+                                    radioBrowserService.setradioList(hitRadioListFromDb)
+                                    radioBrowserService.setCurrentIndex(0)
+                                    updateResultsInfo()
+                                } else {
+                                    // 3. Se nessun risultato nel DB, cerca tramite il servizio di rete
+                                    Log.d(
+                                        TAG,
+                                        "Nessuna stazione trovata nel DB, cerco sul servizio per la query: $query"
+                                    )
+                                    radioBrowserService.searchMedia(query) { apiResponse ->
+                                        // Gestisci la risposta dal servizio di rete
+                                        handleRadioResponse(apiResponse)
+                                        // Opzionale: Salva i risultati trovati online nel DB per future ricerche
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            apiResponse?.forEach { hit ->
+                                                if (hit is HitRadio) {
+                                                    val radioStation =
+                                                        RadioStation(hit) // Usa il costruttore che prende HitRadio
+                                                    radioStationDao.insertOrIgnore(radioStation)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Aggiorna l'UI principale (potrebbe essere chiamata anche dentro i callback
+                                // se vuoi aggiornare l'UI solo quando i dati sono pronti)
                                 updateResultsInfo()
                             }
                         }
@@ -528,8 +639,48 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     MEDIA_TYPE_AUDIO -> {
-                        radioBrowserService.searchMedia(query) { apiResponse ->
-                            handleRadioResponse(apiResponse)
+                        // Lanciamo una coroutine per eseguire l'operazione di DB e rete in background
+                        uiScope.launch {
+                            // 1. Ricerca nel database usando il metodo esistente searchByName
+                            val stationsFromDb = withContext(Dispatchers.IO) {
+                                // Esegui la ricerca nel DB in un thread di background (Dispatchers.IO)
+                                radioStationDao.searchByName(query)
+                            }
+
+                            if (stationsFromDb.isNotEmpty()) {
+                                // 2. Se trovati risultati nel DB, usali
+                                Log.d(
+                                    TAG,
+                                    "Trovate ${stationsFromDb.size} stazioni nel DB per la query: $query"
+                                )
+                                // Converti la lista di RadioStation in List<HitRadio> usando l'extension function esistente
+                                val hitRadioListFromDb = stationsFromDb.map { it.toHitRadio() }
+                                handleRadioResponse(hitRadioListFromDb)
+                                radioBrowserService.setradioList(hitRadioListFromDb)
+                                radioBrowserService.setCurrentIndex(0)
+                            } else {
+                                // 3. Se nessun risultato nel DB, cerca tramite il servizio di rete
+                                Log.d(
+                                    TAG,
+                                    "Nessuna stazione trovata nel DB, cerco sul servizio per la query: $query"
+                                )
+                                radioBrowserService.searchMedia(query) { apiResponse ->
+                                    // Gestisci la risposta dal servizio di rete
+                                    handleRadioResponse(apiResponse)
+                                    // Opzionale: Salva i risultati trovati online nel DB per future ricerche
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        apiResponse?.forEach { hit ->
+                                            if (hit is HitRadio) {
+                                                val radioStation =
+                                                    RadioStation(hit) // Usa il costruttore che prende HitRadio
+                                                radioStationDao.insertAll(listOf(radioStation)) // Usa insertAll per aggiungere/sostituire
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Aggiorna l'UI principale (potrebbe essere chiamata anche dentro i callback
+                            // se vuoi aggiornare l'UI solo quando i dati sono pronti)
                             updateResultsInfo()
                         }
                     }
@@ -911,7 +1062,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleRadioResponse(listResp: List<HitRadio>?) {
         if (listResp != null && listResp.isNotEmpty()) {
-            currentRadio = listResp.firstOrNull()
+            currentRadio = listResp.firstOrNull() // currentRadio viene aggiornato qui
             currentRadio?.let {
                 Log.d("MainActivity", "Media caricato: ${it.name}")
                 when (currentMediaType) {
@@ -923,7 +1074,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this@MainActivity, "Nessun risultato trovato.", Toast.LENGTH_SHORT)
                 .show()
+            currentRadio = null // **Imposta currentRadio a null se non ci sono risultati**
         }
+        // Chiama updateResultsInfo() dopo che currentRadio è stato aggiornato
+        //updateResultsInfo()
     }
 
     private fun loadImageWithGlide(imageUrl: String?) {

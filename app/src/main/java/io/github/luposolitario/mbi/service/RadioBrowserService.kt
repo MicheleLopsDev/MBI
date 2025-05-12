@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +17,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.LinkedList
 import java.util.Properties
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class RadioBrowserService(context: Context) : MediaService<HitRadio> {
+@Singleton
+class RadioBrowserService @Inject constructor(@ApplicationContext context: Context) :
+    MediaService<HitRadio> {
 
     private val prefs = context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
     private var apiKey: String
@@ -78,7 +83,11 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
     }
 
     override fun setCurrentIndex(i: Int) {
-        TODO("Not yet implemented")
+        currentIndex = i
+    }
+
+    override fun setQuery(string: String) {
+        currentQuery = string
     }
 
     override suspend fun moveNext(offset: Int, onMediaChanged: (HitRadio?) -> Unit) {
@@ -128,6 +137,12 @@ class RadioBrowserService(context: Context) : MediaService<HitRadio> {
             e.printStackTrace()
             emptyList()
         }
+    }
+
+    fun setradioList(_list: List<HitRadio>) {
+        radioList.clear()
+        radioList.addAll(_list)
+        currentIndex = 0
     }
 
     fun searchMedia(query: String = "", callback: (List<HitRadio>?) -> Unit) {

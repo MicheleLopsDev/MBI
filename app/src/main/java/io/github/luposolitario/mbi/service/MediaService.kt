@@ -14,4 +14,5 @@ interface MediaService<T> {
     suspend fun moveTo(index: Int, onMediaChanged: (T?) -> Unit)
     fun getItemAtIndex(i: Int): Hit?
     fun setCurrentIndex(i: Int)
+    fun setQuery(string: kotlin.String)
 }

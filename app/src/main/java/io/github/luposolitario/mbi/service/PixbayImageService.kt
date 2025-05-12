@@ -149,6 +149,10 @@ class PixbayImageService @Inject constructor(@ApplicationContext context: Contex
         currentItem = if (currentIndex in imageList.indices) imageList[i] else null
     }
 
+    override fun setQuery(string: String) {
+        TODO("Not yet implemented")
+    }
+
     fun loadInitialMedia(callback: (List<Hit>?) -> Unit) {
         searchMedia(callback = callback)
     }

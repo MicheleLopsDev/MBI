@@ -183,15 +183,17 @@ class RadioPlayerService : Service() {
     }
 
     private suspend fun createNotification(radio: HitRadio?): Notification {
-
+        // Usa safe calls (?.) per accedere ai campi che ora possono essere null
         val largeBmp = radio?.favicon?.let { applicationContext.loadBitmap(it) }
             ?: BitmapFactory.decodeResource(resources, R.drawable.pngtreevector_radio_icon_4091198)
 
-        updateMetadata(radio?.name.toString(), largeBmp)        // ← importa!
+        // Gestisci il caso in cui radio?.name sia null
+        updateMetadata(radio?.name ?: "Nome Sconosciuto", largeBmp) // Fornisci un nome di default
 
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.pngtreevector_radio_icon_4091198)              // icona 24dp mono
-            .setContentTitle(radio?.name)
+            .setSmallIcon(R.drawable.pngtreevector_radio_icon_4091198)
+            // Gestisci il caso in cui radio?.name sia null anche qui
+            .setContentTitle(radio?.name ?: "Stazione Radio")
             .setContentText("Streaming in corso")
             .setLargeIcon(largeBmp)
             .addAction(
@@ -200,23 +202,23 @@ class RadioPlayerService : Service() {
                     this, 0,
                     Intent(this, RadioPlayerService::class.java).apply {
                         action = RadioPlayerService.ACTION_TOGGLE
-                        putExtra("hitRadio", radio) // Inserisci l'oggetto Parcelable
+                        putExtra("hitRadio", radio) // Passi l'oggetto HitRadio (ora nullable-safe)
                     },
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 ),
             )
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
-                    .setMediaSession(mediaSession.sessionToken)   // ★ il pezzo mancante
+                    .setMediaSession(mediaSession.sessionToken)
                     .setShowActionsInCompactView(0)
             )
             .setForegroundServiceBehavior(
-                NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE   // API 34+
+                NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
             )
             .setOngoing(true)
             .build()
 
-        startForeground(NOTIF_ID, notif)          // entro 5 s dallo start
+        startForeground(NOTIF_ID, notif)
 
         return notif
     }

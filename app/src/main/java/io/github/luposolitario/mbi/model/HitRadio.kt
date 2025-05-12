@@ -5,41 +5,41 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class HitRadio(
-    val changeuuid: String,
-    val stationuuid: String,
+    val changeuuid: String?, // Reso nullable
+    val stationuuid: String, // Questo probabilmente non è null (ID univoco)
     val serveruuid: String?,
-    val name: String,
-    val url: String,
-    val url_resolved: String,
-    val homepage: String,
-    val favicon: String,
-    val tags: String,
-    val country: String,
-    val countrycode: String,
-    val iso_3166_2: String,
-    val state: String,
-    val language: String,
-    val languagecodes: String,
-    val votes: Int,
-    val lastchangetime: String,
-    val lastchangetime_iso8601: String,
-    val codec: String,
-    val bitrate: Int,
-    val hls: Int,
-    val lastcheckok: Int,
-    val lastchecktime: String,
-    val lastchecktime_iso8601: String,
-    val lastcheckoktime: String,
-    val lastcheckoktime_iso8601: String,
-    val lastlocalchecktime: String,
-    val lastlocalchecktime_iso8601: String,
-    val clicktimestamp: String,
-    val clicktimestamp_iso8601: String,
-    val clickcount: Int,
-    val clicktrend: Int,
-    val ssl_error: Int,
-    val geo_lat: Double?,        // può essere null
-    val geo_long: Double?,       // può essere null
-    val geo_distance: Double?,   // può essere null
-    val has_extended_info: Boolean
+    val name: String, // Reso nullable
+    val url: String?, // Reso nullable
+    val url_resolved: String?, // Reso nullable
+    val homepage: String?, // Reso nullable
+    val favicon: String?, // Reso nullable
+    val tags: String?, // Reso nullable
+    val country: String?, // Reso nullable
+    val countrycode: String?, // Reso nullable
+    val iso_3166_2: String?, // Reso nullable
+    val state: String?, // Reso nullable
+    val language: String?, // Reso nullable
+    val languagecodes: String?, // Reso nullable
+    val votes: Int?, // Reso nullable
+    val lastchangetime: String?, // Reso nullable
+    val lastchangetime_iso8601: String?, // Reso nullable
+    val codec: String?, // Reso nullable
+    val bitrate: Int?, // Reso nullable
+    val hls: Int?, // Reso nullable
+    val lastcheckok: Int?, // Reso nullable
+    val lastchecktime: String?, // Reso nullable
+    val lastchecktime_iso8601: String?, // Reso nullable
+    val lastcheckoktime: String?, // Reso nullable
+    val lastcheckoktime_iso8601: String?, // Reso nullable
+    val lastlocalchecktime: String?, // Reso nullable
+    val lastlocalchecktime_iso8601: String?, // Reso nullable
+    val clicktimestamp: String?, // Reso nullable per risolvere l'errore
+    val clicktimestamp_iso8601: String?, // Reso nullable per risolvere l'errore
+    val clickcount: Int?, // Reso nullable
+    val clicktrend: Int?, // Reso nullable
+    val ssl_error: Int?, // Reso nullable
+    val geo_lat: Double?,
+    val geo_long: Double?,
+    val geo_distance: Double?, // Reso nullable
+    val has_extended_info: Boolean? // Reso nullable
 ) : Parcelable

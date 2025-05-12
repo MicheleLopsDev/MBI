@@ -133,6 +133,10 @@ class PixbayVideoService(context: Context) : MediaService<Hit> {
         TODO("Not yet implemented")
     }
 
+    override fun setQuery(string: String) {
+        TODO("Not yet implemented")
+    }
+
 //    fun loadInitialMedia(callback: (List<Hit>?) -> Unit) {
 //        searchMedia(callback = callback)
 //    }
