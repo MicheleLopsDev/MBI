@@ -1,5 +1,9 @@
 package io.github.luposolitario.mbi.model
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class HitRadio(
     val changeuuid: String,
     val stationuuid: String,
@@ -38,4 +42,4 @@ data class HitRadio(
     val geo_long: Double?,       // può essere null
     val geo_distance: Double?,   // può essere null
     val has_extended_info: Boolean
-)
+) : Parcelable

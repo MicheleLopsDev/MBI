@@ -22,6 +22,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
 import io.github.luposolitario.mbi.model.AppDatabase
+import io.github.luposolitario.mbi.model.HitRadio
 import io.github.luposolitario.mbi.model.RadioStation
 import io.github.luposolitario.mbi.model.RadioStationDao
 import kotlinx.coroutines.CoroutineScope
@@ -33,9 +34,7 @@ class RadioPlayerService : Service() {
 
     private lateinit var player: ExoPlayer
     private var wakeLock: PowerManager.WakeLock? = null
-    private var name: String? = null
-    private var icon: String? = null
-    private var radioUrl: String? = null
+    private var currentStation: HitRadio? = null
     private lateinit var stationDao: RadioStationDao
     private val serviceScope = CoroutineScope(Dispatchers.IO)
 
@@ -73,21 +72,21 @@ class RadioPlayerService : Service() {
 
 
     // Chiamala quando vuoi salvare una stazione
-    fun saveCurrentStation(name: String?, icon: String?, url: String?) {
+    fun saveCurrentStation(radio: HitRadio?) {
         serviceScope.launch {
-            val station = RadioStation(name = name, icon = icon, radioUrl = url)
+            val station = RadioStation(currentStation)
             val id = stationDao.insertOrIgnore(station)
             Log.d("RadioPlayerService", "Salvata stazione con ID: $id")
         }
     }
 
 
-    fun startRadioPlayer(name: String?, icon: String?, radioUrl: String?, player: ExoPlayer) {
-        if (radioUrl.isNullOrBlank()) return
+    fun startRadioPlayer(radio: HitRadio?, player: ExoPlayer) {
+        if (radio?.url.isNullOrBlank()) return
         isPlayerAlive = true
         acquireWakeLock()
 
-        val mediaItem = MediaItem.Builder().setUri(radioUrl.toString()).build()
+        val mediaItem = MediaItem.Builder().setUri(radio.url.toString()).build()
 
         player.apply {
             setMediaItem(mediaItem)
@@ -97,13 +96,13 @@ class RadioPlayerService : Service() {
 
         // Usa una coroutine per costruire la notifica in modo asincrono
         CoroutineScope(Dispatchers.Main).launch {
-            val notification = createNotification(name ?: "Radio", icon)
+            val notification = createNotification(radio)
             startForeground(NOTIF_ID, notification)
         }
     }
 
 
-    fun toggleRadioPlayer(name: String?, icon: String?, radioUrl: String?, player: ExoPlayer) {
+    fun toggleRadioPlayer(currentRadio: HitRadio?, player: ExoPlayer) {
         acquireWakeLock()
 
         if (player.isPlaying)
@@ -113,7 +112,7 @@ class RadioPlayerService : Service() {
 
         // Usa una coroutine per costruire la notifica in modo asincrono
         CoroutineScope(Dispatchers.Main).launch {
-            val notification = createNotification(name ?: "Radio", icon)
+            val notification = createNotification(currentRadio)
             startForeground(NOTIF_ID, notification)
         }
     }
@@ -183,16 +182,16 @@ class RadioPlayerService : Service() {
         mediaSession.setMetadata(meta)
     }
 
-    private suspend fun createNotification(title: String, iconUrl: String?): Notification {
+    private suspend fun createNotification(radio: HitRadio?): Notification {
 
-        val largeBmp = iconUrl?.let { applicationContext.loadBitmap(it) }
+        val largeBmp = radio?.favicon?.let { applicationContext.loadBitmap(it) }
             ?: BitmapFactory.decodeResource(resources, R.drawable.pngtreevector_radio_icon_4091198)
 
-        updateMetadata(title, largeBmp)        // ← importa!
+        updateMetadata(radio?.name.toString(), largeBmp)        // ← importa!
 
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.pngtreevector_radio_icon_4091198)              // icona 24dp mono
-            .setContentTitle(title)
+            .setContentTitle(radio?.name)
             .setContentText("Streaming in corso")
             .setLargeIcon(largeBmp)
             .addAction(
@@ -201,9 +200,7 @@ class RadioPlayerService : Service() {
                     this, 0,
                     Intent(this, RadioPlayerService::class.java).apply {
                         action = RadioPlayerService.ACTION_TOGGLE
-                        putExtra("name", name)
-                        putExtra("icon", icon)
-                        putExtra("url", radioUrl.toString())
+                        putExtra("hitRadio", radio) // Inserisci l'oggetto Parcelable
                     },
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 ),
@@ -227,27 +224,28 @@ class RadioPlayerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        name = intent?.getStringExtra("name") ?: "Radio"
-        icon = intent?.getStringExtra("icon") ?: ""
-        radioUrl = intent?.getStringExtra("url") ?: ""
+
 
         when (intent?.action) {
             ACTION_START -> {
                 // Usa il player condiviso
+                val radio = intent.getParcelableExtra<HitRadio>("hitRadio")
+                currentStation = radio
                 if (isPlayerAlive) {
                     player = PlayerHolder.exoPlayer ?: ExoPlayer.Builder(this).build()
                 } else {
                     player = ExoPlayer.Builder(this).build()
                 }
 
-                if (!radioUrl.isNullOrBlank()) {
-                    saveCurrentStation(name, icon, radioUrl)
-                    startRadioPlayer(name, icon, radioUrl, player)
+                if (!radio?.url.isNullOrBlank()) {
+                    saveCurrentStation(currentStation)
+                    startRadioPlayer(currentStation, player)
                 }
             }
 
             ACTION_TOGGLE -> {
-                toggleRadioPlayer(name, icon, radioUrl, player)
+                val radio = intent.getParcelableExtra<HitRadio>("hitRadio")
+                toggleRadioPlayer(currentStation, player)
             }
 
             ACTION_STOP -> {

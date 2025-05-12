@@ -320,9 +320,7 @@ class MainActivity : AppCompatActivity() {
                             currentRadio = hit
                             currentRadio?.let {
                                 loadRadioPlayer(
-                                    it.url,
-                                    it.favicon.toString(),
-                                    it.url.toString()
+                                    hit
                                 )
                             }
                         }
@@ -360,9 +358,7 @@ class MainActivity : AppCompatActivity() {
                             currentRadio = hit
                             currentRadio?.let {
                                 loadRadioPlayer(
-                                    it.url,
-                                    it.favicon.toString(),
-                                    it.url.toString()
+                                    hit
                                 )
                             }
                         }
@@ -400,9 +396,7 @@ class MainActivity : AppCompatActivity() {
                             currentRadio = hit
                             currentRadio?.let {
                                 loadRadioPlayer(
-                                    it.url,
-                                    it.favicon.toString(),
-                                    it.url.toString()
+                                    hit
                                 )
                             }
                         }
@@ -466,9 +460,7 @@ class MainActivity : AppCompatActivity() {
                             currentRadio = hit
                             currentRadio?.let {
                                 loadRadioPlayer(
-                                    it.url,
-                                    it.favicon.toString(),
-                                    it.url.toString()
+                                    hit
                                 )
                             }
                         }
@@ -505,9 +497,7 @@ class MainActivity : AppCompatActivity() {
                             currentRadio = hit
                             currentRadio?.let {
                                 loadRadioPlayer(
-                                    it.url,
-                                    it.favicon.toString(),
-                                    it.url.toString()
+                                    hit
                                 )
                             }
                         }
@@ -658,15 +648,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     @OptIn(UnstableApi::class)
-    fun loadRadioPlayer(name: String, icon: String, radioUrl: String?) {
+    fun loadRadioPlayer(radio: HitRadio?) {
         uiScope.launch {
-            // Pulizia se necessario
-//            val stopIntent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
-//                action = RadioPlayerService.ACTION_STOP
-//            }
-//            startService(stopIntent)
-
-
             if (RadioPlayerService.isRunning) {
                 val stopIntent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
                     action = RadioPlayerService.ACTION_STOP
@@ -692,15 +675,9 @@ class MainActivity : AppCompatActivity() {
             playerView.showController()
             playerView.setControllerBackgroundFromUrl(
                 this@MainActivity,
-                icon.toUri().toString(),
+                radio?.favicon?.toUri().toString(),
                 wrapperView
             )
-
-//            playerView.layoutParams = FrameLayout.LayoutParams(
-//                FrameLayout.LayoutParams.MATCH_PARENT,
-//                FrameLayout.LayoutParams.MATCH_PARENT
-//            )
-
             val dataSourceFactory = DefaultHttpDataSource.Factory()
                 .setAllowCrossProtocolRedirects(true)
                 .setDefaultRequestProperties(
@@ -801,9 +778,7 @@ class MainActivity : AppCompatActivity() {
             playButton?.setOnClickListener {
                 val intent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
                     action = RadioPlayerService.ACTION_START
-                    putExtra("name", name)
-                    putExtra("icon", icon)
-                    putExtra("url", radioUrl.toString())
+                    putExtra("hitRadio", radio)
                 }
                 startService(intent)
             }
@@ -816,9 +791,7 @@ class MainActivity : AppCompatActivity() {
             // Passa i parametri via Intent
             val intent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
                 action = "ACTION_START_RADIO"
-                putExtra("name", name)
-                putExtra("icon", icon)
-                putExtra("url", radioUrl.toString())
+                putExtra("hitRadio", radio)
             }
 
             startService(intent)
@@ -943,9 +916,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("MainActivity", "Media caricato: ${it.name}")
                 when (currentMediaType) {
                     MEDIA_TYPE_AUDIO -> loadRadioPlayer(
-                        it.name.toString(),
-                        it.favicon.toString(),
-                        it.url.toString()
+                        it
                     )
                 }
             }

@@ -1,3 +1,4 @@
+// File: model/AppDatabase.kt
 package io.github.luposolitario.mbi.model
 
 import android.content.Context
@@ -7,7 +8,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [RadioStation::class],
-    version = 1,
+    version = 2, // <<-- INCREMENTA LA VERSIONE
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,7 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "app_database.db"
-            ).fallbackToDestructiveMigration()  // cancella e ricrea il DB se cambia schema
+            ).fallbackToDestructiveMigration() // Gestisce l'aggiornamento dello schema
                 .build()
     }
 }
