@@ -23,6 +23,8 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -59,7 +61,10 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputLayout
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.luposolitario.mbi.model.Country
 import io.github.luposolitario.mbi.model.Hit
 import io.github.luposolitario.mbi.model.HitRadio
 import io.github.luposolitario.mbi.model.RadioStation
@@ -81,11 +86,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import javax.inject.Inject
-import android.widget.AutoCompleteTextView
-import android.widget.ArrayAdapter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import io.github.luposolitario.mbi.model.Country
 
 
 @AndroidEntryPoint
@@ -120,6 +120,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnFw: MaterialButton
     private lateinit var btnRev: MaterialButton
     private lateinit var topInfoText: TextView
+    private lateinit var textViewsCount: TextView
+    private lateinit var textLikesCount: TextView
+
     private lateinit var countrySelector: AutoCompleteTextView
     private lateinit var countrySelectorLayout: TextInputLayout
 
@@ -369,6 +372,8 @@ class MainActivity : AppCompatActivity() {
         topInfoText = findViewById(R.id.topInfoText)
         countrySelector = findViewById(R.id.countrySelector)  // subito dopo gli altri findViewById
         countrySelectorLayout = findViewById(R.id.countrySelectorLayout)
+
+
     }
 
     // ---- LEGGE IL JSON DAGLI assets ----
@@ -383,6 +388,19 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
             emptyList()
         }
+    }
+
+    private fun createStatsOverlay() {
+        // Usa LayoutInflater per caricare il layout XML
+        val statsOverlayLayout = LayoutInflater.from(this).inflate(
+            R.layout.stats_overlay_layout,
+            playerContainer,
+            false
+        ) as MaterialCardView // Cast necessario
+
+        // Aggiungi statsOverlayLayout al playerContainer
+        playerContainer.addView(statsOverlayLayout)
+
     }
 
     /**
@@ -866,10 +884,7 @@ class MainActivity : AppCompatActivity() {
             playerView.player = this@MainActivity.player
             playerView.setBackgroundColor(Color.BLACK) // Sfondo nero
             playerView.setShutterBackgroundColor(Color.BLACK) // Sfondo nero durante il buffering/inizio
-//            playerView.layoutParams = FrameLayout.LayoutParams(
-//                FrameLayout.LayoutParams.MATCH_PARENT,
-//                FrameLayout.LayoutParams.MATCH_PARENT
-//            )
+
             playerView.setKeepContentOnPlayerReset(true) // opzionale
             playerView.setControllerBackgroundFromUrl(this@MainActivity, "", wrapperView)
             this@MainActivity.playerView = playerView
@@ -1432,7 +1447,8 @@ class MainActivity : AppCompatActivity() {
                     true // restituisci true per indicare che l'evento è stato gestito
                 }
 
-                playerContainer.addView(imageViewer)
+                playerContainer.addView(imageViewer) //OK
+                createStatsOverlay()
             }
 
             MEDIA_TYPE_VIDEO -> {
@@ -1714,8 +1730,13 @@ class MainActivity : AppCompatActivity() {
                 val currentIndex =
                     imageViewModel.getCurrentIndex() + 1 // +1 perché l'indice parte da 0
                 val currentImage = imageViewModel.getCurrentItem()
-
                 topInfoText.text = getTopInfoText(currentMediaType, currentImage, query)
+                textViewsCount = findViewById(R.id.textViewsCount)
+                textLikesCount = findViewById(R.id.textLikesCount)
+                if (currentImage != null) {
+                    textLikesCount.text = currentImage.likes.toString() ?: "N/A"
+                    textViewsCount.text = currentImage.views.toString() ?: "N/A"
+                }
 
                 // Restituisci la stringa per la Top App Bar (solo indice/totale)
                 if (totalResults > 0) {
@@ -1784,7 +1805,7 @@ class MainActivity : AppCompatActivity() {
             MEDIA_TYPE_IMAGE -> {
                 if (currentMedia is io.github.luposolitario.mbi.model.Hit) {
                     val currentImage = currentMedia as io.github.luposolitario.mbi.model.Hit
-                    "By: ${currentImage.user} - Tags: ${currentImage.tags} - Views: ${currentImage.views} Likes: ${currentImage.likes} ❤\uFE0F"
+                    "By: ${currentImage.user} - Tags: ${currentImage.tags} "
                 } else if (query.isNotBlank()) {
                     "Nessun dettaglio disponibile per \"$query\""
                 } else {

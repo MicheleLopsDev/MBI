@@ -99,10 +99,10 @@
         <AutoCompleteTextView
             android:id="@+id/countrySelector"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:hint="@string/select_country"
-            android:inputType="text"
-            android:imeOptions="actionDone" />    <!-- (opz.) chiude la tastiera -->
+            android:imeOptions="actionDone"
+            android:inputType="text" />    <!-- (opz.) chiude la tastiera -->
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -129,18 +129,6 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Media Viewer Container -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/mediaLayerCard"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="8dp"
-        app:layout_constraintBottom_toTopOf="@id/navigationButtons"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchInputLayout"
-        material:cardCornerRadius="8dp"
-        material:cardElevation="4dp" />
 
     <!-- Navigation Buttons -->
     <LinearLayout
@@ -149,9 +137,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/mediaLayerCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchInputLayout">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRew"
@@ -194,5 +183,19 @@
             material:icon="@android:drawable/ic_media_ff" />
 
     </LinearLayout>
+
+    <!-- Media Viewer Container -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/mediaLayerCard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navigationButtons"
+        material:cardCornerRadius="8dp"
+        material:cardElevation="4dp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
