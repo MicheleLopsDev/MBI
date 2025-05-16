@@ -6,10 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -101,7 +103,10 @@ class MainActivity : AppCompatActivity() {
         const val MEDIA_TYPE_AUDIO = 2
         const val MIN_RADIO_STATIONS = 10
         const val PREF_SELECTED_COUNTRY = "selected_country_code"
-
+        const val PREF_FAV_NAME = "fav_name"
+        const val PREF_FAV_ICON = "fav_icon"
+        const val PREF_FAV_URL = "fav_url"
+        const val PREF_FAV_UUID= "fav_uuid"
     }
 
 
@@ -119,12 +124,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnNext: MaterialButton
     private lateinit var btnFw: MaterialButton
     private lateinit var btnRev: MaterialButton
+    private lateinit var btnFavoriteRadio: MaterialButton
+
     private lateinit var topInfoText: TextView
     private lateinit var textViewsCount: TextView
     private lateinit var textLikesCount: TextView
 
     private lateinit var countrySelector: AutoCompleteTextView
     private lateinit var countrySelectorLayout: TextInputLayout
+
+    private lateinit var defaultTint: ColorStateList
+    private lateinit var goldColor: ColorStateList
+
 
     // Riferimenti ai visualizzatori di media
     private lateinit var playerContainer: MaterialCardView
@@ -369,6 +380,7 @@ class MainActivity : AppCompatActivity() {
         btnNext = findViewById(R.id.btnNext)
         btnFw = findViewById(R.id.btnFw)
         btnRev = findViewById<MaterialButton>(R.id.btnRew)
+        btnFavoriteRadio = findViewById<MaterialButton>(R.id.btnFavoriteRadio)
         topInfoText = findViewById(R.id.topInfoText)
         countrySelector = findViewById(R.id.countrySelector)  // subito dopo gli altri findViewById
         countrySelectorLayout = findViewById(R.id.countrySelectorLayout)
@@ -758,7 +770,17 @@ class MainActivity : AppCompatActivity() {
             vibrate()
             updateResultsInfo()
         } // [Source 29]
-
+        btnFavoriteRadio.setOnClickListener { //TODO DA FARE
+            Log.d(TAG, "Star button clicked")
+            // Qui implementerai la navigazione al media precedente
+            when (getCurrentMediaType()) {
+                MEDIA_TYPE_AUDIO -> {
+                    toggleRadioPref()
+                }
+            }
+            vibrate()
+            updateResultsInfo()
+        } // [Source 29]
         searchInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 val searchInput: EditText = findViewById(R.id.searchInput)
@@ -847,9 +869,38 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun toggleRadioPref() {
+        if (RadioPlayerService.isRunning) {
+            if (btnFavoriteRadio.iconTint == defaultTint) {
+
+                sharedPref.edit().putString(PREF_FAV_NAME, currentRadio?.name)
+                sharedPref.edit().putString(PREF_FAV_ICON, currentRadio?.favicon)
+                sharedPref.edit().putString(PREF_FAV_URL, currentRadio?.url)
+                sharedPref.edit().putString(PREF_FAV_UUID, currentRadio?.serveruuid)
+
+                btnFavoriteRadio.iconTint = goldColor
+                btnFavoriteRadio.iconTintMode = PorterDuff.Mode.SRC_ATOP
+
+            } else {
+
+                sharedPref.edit().putString(PREF_FAV_NAME, "")
+                sharedPref.edit().putString(PREF_FAV_ICON, "")
+                sharedPref.edit().putString(PREF_FAV_URL, "")
+                sharedPref.edit().putString(PREF_FAV_UUID, "")
+
+                btnFavoriteRadio.iconTint = defaultTint
+                btnFavoriteRadio.iconTintMode = PorterDuff.Mode.SRC_ATOP
+            }
+        }
+    }
+
     // Funzione per impostare lo stato iniziale (chiamata solo se non si ripristina)
     private fun setupInitialContent() {
         Log.d(TAG, "Setting up initial content...")
+
+        defaultTint = btnFavoriteRadio.iconTint
+        goldColor = ContextCompat.getColorStateList(this, R.color.gold)!!
+
         query = "" // Imposta query iniziale
         searchInput.setText(query)
         selectMediaType(MEDIA_TYPE_IMAGE) // Seleziona immagine di default [Source 20]
@@ -1069,11 +1120,13 @@ class MainActivity : AppCompatActivity() {
             }
             val playButton = playerView.findViewById<MaterialButton>(R.id.radio_play)
             playButton?.setOnClickListener {
-                val intent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
-                    action = RadioPlayerService.ACTION_START
-                    putExtra("hitRadio", radio)
+                if (!RadioPlayerService.isRunning) {
+                    val intent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
+                        action = RadioPlayerService.ACTION_START
+                        putExtra("hitRadio", radio)
+                    }
+                    startService(intent)
                 }
-                startService(intent)
             }
 
             // Prepara ExoPlayer solo se non già esistente

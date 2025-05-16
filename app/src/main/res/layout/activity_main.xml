@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Top App Bar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -21,7 +20,6 @@
         tools:menu="@menu/my_menu"
         material:titleTextAppearance="?attr/textAppearanceHeadlineSmall" />
 
-    <!-- Additional Info -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/topInfoCard"
         android:layout_width="0dp"
@@ -43,7 +41,6 @@
             android:textAppearance="?attr/textAppearanceBodyMedium" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Type Selector Buttons -->
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/typeSelectorToggleGroup"
         android:layout_width="0dp"
@@ -84,7 +81,6 @@
 
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
-    <!-- Country Spinner (Material 3 exposed dropdown) -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/countrySelectorLayout"
         android:layout_width="0dp"
@@ -95,42 +91,50 @@
         app:layout_constraintTop_toBottomOf="@id/typeSelectorToggleGroup"
         app:endIconMode="dropdown_menu">
 
-        <!-- activity_main.xml  – unica modifica -->
         <AutoCompleteTextView
             android:id="@+id/countrySelector"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:hint="@string/select_country"
             android:imeOptions="actionDone"
-            android:inputType="text" />    <!-- (opz.) chiude la tastiera -->
-
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Search Bar -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/searchInputLayout"
-        android:layout_width="0dp"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnFavoriteRadio"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:boxStrokeColor="?attr/colorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_weight="1"
+        android:contentDescription="@string/immagine"
+        app:icon="@android:drawable/btn_star_big_off"
+        app:layout_constraintBottom_toBottomOf="@+id/searchInputLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/countrySelectorLayout"
-        app:startIconContentDescription="@string/cerca"
-        app:startIconDrawable="@drawable/ic_search">
+        app:layout_constraintTop_toTopOf="@+id/searchInputLayout" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/searchInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/cerca_hint"
-            android:inputType="text"
-            android:textAlignment="center" />
+    <com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/searchInputLayout"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    app:boxStrokeColor="?attr/colorPrimary"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toEndOf="@+id/btnFavoriteRadio"
+    app:layout_constraintTop_toBottomOf="@id/countrySelectorLayout"
+    app:startIconContentDescription="@string/cerca"
+    app:startIconDrawable="@drawable/ic_search">
 
-    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/searchInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/cerca_hint"
+        android:inputType="text"
+        android:textAlignment="center" />
+
+</com.google.android.material.textfield.TextInputLayout>
 
 
-    <!-- Navigation Buttons -->
     <LinearLayout
         android:id="@+id/navigationButtons"
         android:layout_width="0dp"
@@ -184,7 +188,6 @@
 
     </LinearLayout>
 
-    <!-- Media Viewer Container -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/mediaLayerCard"
         android:layout_width="0dp"
