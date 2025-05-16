@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Guadeloupe",
-    "countrycode": "GP",
+    "COUNTRYCODE": "GP",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",
@@ -45,7 +45,7 @@
     "favicon": "https://la1ere.francetvinfo.fr/favicon.ico",
     "tags": "",
     "country": "Guadeloupe",
-    "countrycode": "GP",
+    "COUNTRYCODE": "GP",
     "iso_3166_2": "",
     "state": "",
     "language": "",
@@ -81,7 +81,7 @@
     "favicon": "https://www.radio-sofaia-altitude.com/upload/51bf0534b8eaa1.96289316.ico",
     "tags": "",
     "country": "Guadeloupe",
-    "countrycode": "GP",
+    "COUNTRYCODE": "GP",
     "iso_3166_2": "",
     "state": "",
     "language": "creole,french",
@@ -104,8 +104,8 @@
     "clickcount": 4,
     "clicktrend": -2,
     "ssl_error": 0,
-    "geo_lat": 16.32691552827323,
-    "geo_long": -61.70028026237691,
+    "geo_lat": 16.326915528273229,
+    "geo_long": -61.700280262376907,
     "has_extended_info": false
   }
 ]

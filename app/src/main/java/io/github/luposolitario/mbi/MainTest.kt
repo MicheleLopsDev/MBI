@@ -9,7 +9,7 @@ fun main() {
     val inputFileName =
         "C:\\Users\\Michele\\AndroidStudioProjects\\MBI\\app\\src\\main\\assets\\fallback_stations.json"
     // Specifica la directory di output per i file divisi
-    val outputDirName = "C:\\Users\\Michele\\AndroidStudioProjects\\MBI\\app\\src\\main\\assets\\"
+    val outputDirName = "C:\\TMP\\assets\\"
 
     // Crea la directory di output se non esiste
     val outputDir = File(outputDirName)
@@ -34,7 +34,7 @@ fun main() {
                 val jsonObject = element.getAsJsonObject()
                 // >>> CAMBIAMENTO QUI <<<
                 // Estrae il countryCode, usa "NoCode" come fallback se non presente
-                val countrycode = jsonObject.get("countrycode")?.asString ?: "NoCode"
+                val countrycode = jsonObject.get("COUNTRYCODE")?.asString ?: "NoCode"
 
                 // Aggiungi l'oggetto JSON all'array corrispondente al countryCode
                 dataByCountryCode.computeIfAbsent(countrycode) { JsonArray() }.add(jsonObject)
@@ -50,6 +50,12 @@ fun main() {
             ) // Assicura un nome file valido usando il codice
             val outputFileName = "$outputDirName/$safeCodeName.json"
             val outputFile = File(outputFileName)
+
+
+            var newCode = code
+            if (newCode.toUpperCase() == "AR") {
+                var test = "ARGENTINA"
+            }
 
             // Scrivi il JsonArray nel nuovo file
             outputFile.writeText(gson.toJson(data))

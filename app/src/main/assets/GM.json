@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "The Gambia",
-    "countrycode": "GM",
+    "COUNTRYCODE": "GM",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

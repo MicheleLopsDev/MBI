@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Ascension And Tristan Da Cunha Saint Helena",
-    "countrycode": "SH",
+    "COUNTRYCODE": "SH",
     "iso_3166_2": "",
     "state": "",
     "language": "geopn",

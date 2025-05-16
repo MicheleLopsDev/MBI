@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "The French Southern Territories",
-    "countrycode": "TF",
+    "COUNTRYCODE": "TF",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",
@@ -46,7 +46,7 @@
     "favicon": "https://img.nrj.fr/OImjPWH1tkT1NaUMPlxsY49g9BI\u003d/medias%2F2024%2F03%2Fvvscnx9i3yteabtkx8nlpdusmqj6uo8hshh9iphoit8_65fbfe026c3a5.png",
     "tags": "",
     "country": "The French Southern Territories",
-    "countrycode": "TF",
+    "COUNTRYCODE": "TF",
     "iso_3166_2": "",
     "state": "France",
     "language": "french",
@@ -82,7 +82,7 @@
     "favicon": "",
     "tags": "",
     "country": "The French Southern Territories",
-    "countrycode": "TF",
+    "COUNTRYCODE": "TF",
     "iso_3166_2": "",
     "state": "reunion",
     "language": "french",
@@ -105,8 +105,8 @@
     "clickcount": 1,
     "clicktrend": 0,
     "ssl_error": 0,
-    "geo_lat": -21.27568942887999,
-    "geo_long": 55.52310794591904,
+    "geo_lat": -21.275689428879989,
+    "geo_long": 55.523107945919037,
     "has_extended_info": false
   }
 ]

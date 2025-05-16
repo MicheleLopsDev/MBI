@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "The Marshall Islands",
-    "countrycode": "MH",
+    "COUNTRYCODE": "MH",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

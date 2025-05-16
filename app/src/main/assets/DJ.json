@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Djibouti",
-    "countrycode": "DJ",
+    "COUNTRYCODE": "DJ",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

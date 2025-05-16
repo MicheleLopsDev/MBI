@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Liberia",
-    "countrycode": "LR",
+    "COUNTRYCODE": "LR",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

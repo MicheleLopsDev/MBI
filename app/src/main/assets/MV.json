@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Maldives",
-    "countrycode": "MV",
+    "COUNTRYCODE": "MV",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",
@@ -46,7 +46,7 @@
     "favicon": "https://www.facebook.com/photo.php?fbid\u003d694827997253815\u0026id\u003d342512189152066\u0026set\u003da.342512289152056",
     "tags": "",
     "country": "Maldives",
-    "countrycode": "MV",
+    "COUNTRYCODE": "MV",
     "iso_3166_2": "",
     "state": "",
     "language": "",
@@ -69,8 +69,8 @@
     "clickcount": 4,
     "clicktrend": 0,
     "ssl_error": 0,
-    "geo_lat": 4.173064712851906,
-    "geo_long": 73.50708752936147,
+    "geo_lat": 4.1730647128519056,
+    "geo_long": 73.507087529361471,
     "has_extended_info": false
   },
   {
@@ -84,7 +84,7 @@
     "favicon": "https://pea.fm/uploads/posts/2020-10/1601942486_dhivehi-fm-91_0.jpg",
     "tags": "",
     "country": "Maldives",
-    "countrycode": "MV",
+    "COUNTRYCODE": "MV",
     "iso_3166_2": "",
     "state": "",
     "language": "",
@@ -107,7 +107,7 @@
     "clickcount": 2,
     "clicktrend": 0,
     "ssl_error": 0,
-    "geo_lat": 4.174263155811882,
+    "geo_lat": 4.1742631558118823,
     "geo_long": 73.5108842804422,
     "has_extended_info": false
   },
@@ -122,7 +122,7 @@
     "favicon": "https://pea.fm/uploads/posts/2020-10/1601942624_dhivehi-raajjeyge-adu.jpg",
     "tags": "adu,dhivehi",
     "country": "Maldives",
-    "countrycode": "MV",
+    "COUNTRYCODE": "MV",
     "iso_3166_2": "",
     "state": "",
     "language": "dhivehi",
@@ -145,8 +145,8 @@
     "clickcount": 5,
     "clicktrend": 2,
     "ssl_error": 0,
-    "geo_lat": 4.174583497582081,
-    "geo_long": 73.51114912803006,
+    "geo_lat": 4.1745834975820806,
+    "geo_long": 73.511149128030056,
     "has_extended_info": false
   },
   {
@@ -159,7 +159,7 @@
     "favicon": "",
     "tags": "",
     "country": "Maldives",
-    "countrycode": "MV",
+    "COUNTRYCODE": "MV",
     "iso_3166_2": "",
     "state": "",
     "language": "dhivehi,english,french,german,spanish",
@@ -183,7 +183,7 @@
     "clicktrend": 3,
     "ssl_error": 0,
     "geo_lat": 4.17808535273128,
-    "geo_long": 73.50870110863072,
+    "geo_long": 73.508701108630717,
     "has_extended_info": false
   }
 ]

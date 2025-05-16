@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Federated States Of Micronesia",
-    "countrycode": "FM",
+    "COUNTRYCODE": "FM",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

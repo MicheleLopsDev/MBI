@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Svalbard And Jan Mayen",
-    "countrycode": "SJ",
+    "COUNTRYCODE": "SJ",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

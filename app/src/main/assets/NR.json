@@ -10,7 +10,7 @@
     "favicon": "null",
     "tags": "",
     "country": "Nauru",
-    "countrycode": "NR",
+    "COUNTRYCODE": "NR",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

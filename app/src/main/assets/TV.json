@@ -10,7 +10,7 @@
     "favicon": "https://mp3islam.com/favicon.ico",
     "tags": "",
     "country": "Tuvalu",
-    "countrycode": "TV",
+    "COUNTRYCODE": "TV",
     "iso_3166_2": "",
     "state": "",
     "language": "arabic",

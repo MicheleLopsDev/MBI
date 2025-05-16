@@ -9,7 +9,7 @@
     "favicon": "https://cdn-profiles.tunein.com/s90984/images/logog.png",
     "tags": "moi merino,åland islands",
     "country": "Aland Islands",
-    "countrycode": "AX",
+    "COUNTRYCODE": "AX",
     "iso_3166_2": "",
     "state": "Veracruz, México",
     "language": "spanish",
@@ -45,7 +45,7 @@
     "favicon": "https://alandsradio.ax/sites/default/files/favicon_artv.ico",
     "tags": "",
     "country": "Aland Islands",
-    "countrycode": "AX",
+    "COUNTRYCODE": "AX",
     "iso_3166_2": "",
     "state": "",
     "language": "swedish",
@@ -68,7 +68,7 @@
     "clickcount": 7,
     "clicktrend": 1,
     "ssl_error": 0,
-    "geo_lat": 60.10266975355154,
+    "geo_lat": 60.102669753551538,
     "geo_long": 19.937198420777847,
     "has_extended_info": false
   }
