@@ -34,7 +34,7 @@ fun main() {
                 val jsonObject = element.getAsJsonObject()
                 // >>> CAMBIAMENTO QUI <<<
                 // Estrae il countryCode, usa "NoCode" come fallback se non presente
-                val countrycode = jsonObject.get("COUNTRYCODE")?.asString ?: "NoCode"
+                val countrycode = jsonObject.get("countrycode")?.asString ?: "NoCode"
 
                 // Aggiungi l'oggetto JSON all'array corrispondente al countryCode
                 dataByCountryCode.computeIfAbsent(countrycode) { JsonArray() }.add(jsonObject)
@@ -44,7 +44,7 @@ fun main() {
         // Scrivi i file JSON separati per ogni countryCode
         // >>> CAMBIAMENTO QUI <<<
         dataByCountryCode.forEach { (code, data) ->
-            val safeCodeName = code.replace(
+            val safeCodeName = code.toUpperCase().replace(
                 Regex("[^a-zA-Z0-9.-]"),
                 "_"
             ) // Assicura un nome file valido usando il codice
