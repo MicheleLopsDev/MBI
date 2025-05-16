@@ -51,12 +51,6 @@ fun main() {
             val outputFileName = "$outputDirName/$safeCodeName.json"
             val outputFile = File(outputFileName)
 
-
-            var newCode = code
-            if (newCode.toUpperCase() == "AR") {
-                var test = "ARGENTINA"
-            }
-
             // Scrivi il JsonArray nel nuovo file
             outputFile.writeText(gson.toJson(data))
             // >>> CAMBIAMENTO QUI <<<
