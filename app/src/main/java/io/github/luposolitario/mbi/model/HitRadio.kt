@@ -41,5 +41,30 @@ data class HitRadio(
     val geo_lat: Double?,
     val geo_long: Double?,
     val geo_distance: Double?, // Reso nullable
-    val has_extended_info: Boolean? // Reso nullable
-) : Parcelable
+    val has_extended_info: Boolean?, // Reso nullable
+
+) : Parcelable {
+    constructor(
+        uuid: String,
+        name: String,
+        favicon: String?,
+        url: String?,
+    ) : this(
+        changeuuid = null,
+        stationuuid = uuid,
+        serveruuid = null,
+        name = name,
+        url = url,
+        url_resolved = null,
+        homepage = null,
+        favicon = favicon,
+        tags = null,
+        country = null,
+        countrycode = null,
+        iso_3166_2 = null,
+        state = null,
+        language = null,
+        languagecodes = null,
+        votes = null, // Inizializza gli altri campi con null o valori predefiniti
+        lastchangetime = null, lastchangetime_iso8601 = null, codec = null, bitrate = null, hls = null, lastcheckok = null, lastchecktime = null, lastchecktime_iso8601 = null, lastcheckoktime = null, lastcheckoktime_iso8601 = null, lastlocalchecktime = null, lastlocalchecktime_iso8601 = null, clicktimestamp = null, clicktimestamp_iso8601 = null, clickcount = null, clicktrend = null, ssl_error = null, geo_lat = null, geo_long = null, geo_distance = null, has_extended_info = null
+    )}

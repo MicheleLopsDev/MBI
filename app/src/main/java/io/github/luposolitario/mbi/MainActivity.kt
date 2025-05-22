@@ -873,20 +873,20 @@ class MainActivity : AppCompatActivity() {
         if (RadioPlayerService.isRunning) {
             if (btnFavoriteRadio.iconTint == defaultTint) {
 
-                sharedPref.edit().putString(PREF_FAV_NAME, currentRadio?.name)
-                sharedPref.edit().putString(PREF_FAV_ICON, currentRadio?.favicon)
-                sharedPref.edit().putString(PREF_FAV_URL, currentRadio?.url)
-                sharedPref.edit().putString(PREF_FAV_UUID, currentRadio?.serveruuid)
+                sharedPref.edit().putString(PREF_FAV_NAME, currentRadio?.name).apply()
+                sharedPref.edit().putString(PREF_FAV_ICON, currentRadio?.favicon).apply()
+                sharedPref.edit().putString(PREF_FAV_URL, currentRadio?.url).apply()
+                sharedPref.edit().putString(PREF_FAV_UUID, currentRadio?.serveruuid).apply()
 
                 btnFavoriteRadio.iconTint = goldColor
                 btnFavoriteRadio.iconTintMode = PorterDuff.Mode.SRC_ATOP
 
             } else {
 
-                sharedPref.edit().putString(PREF_FAV_NAME, "")
-                sharedPref.edit().putString(PREF_FAV_ICON, "")
-                sharedPref.edit().putString(PREF_FAV_URL, "")
-                sharedPref.edit().putString(PREF_FAV_UUID, "")
+                sharedPref.edit().putString(PREF_FAV_NAME, "").apply()
+                sharedPref.edit().putString(PREF_FAV_ICON, "").apply()
+                sharedPref.edit().putString(PREF_FAV_URL, "").apply()
+                sharedPref.edit().putString(PREF_FAV_UUID, "").apply()
 
                 btnFavoriteRadio.iconTint = defaultTint
                 btnFavoriteRadio.iconTintMode = PorterDuff.Mode.SRC_ATOP
@@ -1558,7 +1558,43 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 })
-//                playerContainer.removeAllViews() // Rimuovi eventuali viste precedenti
+
+                // --- NUOVA LOGICA PER AVVIARE LA RADIO PREFERITA ---
+                val favRadioUrl = sharedPref.getString(PREF_FAV_URL, "")
+                val favRadioUid = sharedPref.getString(PREF_FAV_UUID, "")
+                val favRadioIcon = sharedPref.getString(PREF_FAV_ICON, "")
+                val favRadioName = sharedPref.getString(PREF_FAV_NAME, getString(R.string.radio_station_default_name)) // Recupera anche il nome, con un default
+
+                if (!favRadioUrl.isNullOrEmpty()) {
+                    Log.i(TAG, "Stazione radio preferita trovata: '$favRadioUrl' ($favRadioName). Tentativo di avvio tramite Service.")
+
+                    val serviceIntent = Intent(this@MainActivity, RadioPlayerService::class.java).apply {
+                        action = RadioPlayerService.ACTION_START // Usa la costante corretta dal tuo RadioPlayerService
+                        var radio = HitRadio(favRadioUid.toString(),favRadioName.toString(),favRadioIcon,favRadioUrl)
+                        putExtra("hitRadio", radio)
+
+
+                        val playerView = wrapperView.findViewById<PlayerView>(R.id.player_radio_view)
+                        playerView.setControllerBackgroundFromUrl(
+                            this@MainActivity,
+                            favRadioIcon.toString(),
+                            wrapperView
+                        )
+
+                        btnFavoriteRadio.iconTint = goldColor
+                        btnFavoriteRadio.iconTintMode = PorterDuff.Mode.SRC_ATOP
+
+                    }
+                    startService(serviceIntent) // Avvia il servizio per la riproduzione
+
+                    // Nota: La ProgressBar dovrebbe essere nascosta quando il RadioPlayerService
+                    // segnala l'inizio effettivo della riproduzione o un errore.
+                    // Questo richiede una comunicazione Service -> Activity (es. LocalBroadcastManager o LiveData).
+                } else {
+                    Log.i(TAG, "Nessuna stazione radio preferita trovata nelle SharedPreferences.")
+
+                }
+                // --- FINE NUOVA LOGICA ---
             }
         }
     }
