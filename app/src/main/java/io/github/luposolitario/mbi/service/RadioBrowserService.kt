@@ -31,7 +31,11 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
     private var apiKey: String
     private val baseUrl = "https://xx.api.radio-browser.info/"
     private var currentQuery: String
+    private var countryCode: String
     private var currentIndex = -1
+
+    fun getCountryCode(): String = countryCode
+    fun setCountryCode(code: String) { countryCode = code }
 
     private var perPage: Int
     private val radioService: RadioInterfaceService
@@ -50,12 +54,14 @@ class RadioBrowserService @Inject constructor(@ApplicationContext context: Conte
             val inputStream = context.assets.open("pixbay.properties")
             properties.load(inputStream)
             currentQuery = properties.getProperty("pixabay_query") ?: ""
+            countryCode = properties.getProperty("pixabay_country") ?: ""
             perPage = properties.getProperty("pixabay_per_page")?.toIntOrNull() ?: 200
             inputStream.close()
         } catch (e: Exception) {
             Log.e("ImageService", "Errore nel caricamento del file di properties: ${e.message}")
             apiKey = ""
             currentQuery = ""
+            countryCode = "IT"
             perPage = 200
         }
 

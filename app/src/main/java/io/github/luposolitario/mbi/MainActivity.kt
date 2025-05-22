@@ -147,6 +147,7 @@ class MainActivity : AppCompatActivity() {
     private val job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
     private var countryChanged = false            //  true quando l’utente cambia Paese
+    private var countryCode = "IT"            //  true quando l’utente cambia Paese
     private lateinit var sharedPref: SharedPreferences //  reference alle SharedPreferences
     private lateinit var countries: List<Country>     // lista completa da tenere in memoria
 
@@ -181,6 +182,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // --- Setup Tema e ViewModel ---
         sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE) // [Source 7]
+        countryCode = sharedPref.getString(PREF_SELECTED_COUNTRY, "IT") ?: "IT"
         val themePref = sharedPref.getString("selected_theme", "light")
         if (!themePref.equals("dark")) {
             setTheme(R.style.Theme_MBI)
@@ -264,7 +266,7 @@ class MainActivity : AppCompatActivity() {
     private fun fetchAndSaveRadioStations() {
         //CoroutineScope(Dispatchers.IO).launch {
         try {
-            radioBrowserService.searchMedia("", "") { apiResponse ->
+            radioBrowserService.searchMedia("", countryCode) { apiResponse ->
                 CoroutineScope(Dispatchers.IO).launch { // Launch another coroutine to handle DB operation
                     apiResponse?.forEach { hit ->
                         if (hit is HitRadio) {
@@ -451,6 +453,9 @@ class MainActivity : AppCompatActivity() {
 
         countrySelector.post {
             countrySelector.setText(entries[defaultIdx], /*filter=*/false)
+            radioBrowserService.setCountryCode(countries[defaultIdx].code)
+            if(countryCode!=countries[defaultIdx].code) countryChanged = true
+            countryCode = countries[defaultIdx].code
         }
         /* ---------------------------------------------------------------- */
 
@@ -480,6 +485,7 @@ class MainActivity : AppCompatActivity() {
             sharedPref.edit().putString(PREF_SELECTED_COUNTRY, newCountry.code).apply()
             countryChanged =
                 true                   //  ora chi usa l’audio sa che deve rifare la query
+            radioBrowserService.setCountryCode(newCountry.code)
             Log.d(TAG, "Country cambiato in ${newCountry.code}")
         }
     }
